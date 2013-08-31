@@ -1,0 +1,302 @@
+@import url('common.css');
+@import url('body.css');
+
+
+.audio:focus {
+    outline: none;
+}
+
+/* HEAD */
+
+.entry > .head {
+    line-height: 1.3;
+    margin: 0 0 0.6em 2px;
+}
+.entry > .head .hyphenation {
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 26px;
+    font-weight: bold;
+    margin-right: 2px;
+}
+.entry > .head .homnum {
+    font-size: 16px;
+    font-family: "Trebuchet MS", sans-serif;
+    font-weight: bold;
+}
+.freq, .ac {
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    background-color: #009a50;
+    color: white;
+    padding: 1px 3px;
+    margin-left: 0.1em;
+    border-radius: 2px;
+    vertical-align: 1px;
+}
+.entry > .head .audio {
+    margin: 0 3px 0 3px;
+    vertical-align: -3px;
+}
+.entry > .head .audio img {
+    height: 15px;
+}
+.entry > .head .infllab { font-size: medium; }
+
+
+/* ASSETS */
+
+.assets {
+    display: block;
+    float: right;
+    font-size: 13px;
+    font-family: 'Trebuchet MS', sans-serif;
+    margin: 0 0 1.0em 1.0em;
+    background: #f3f3f3;
+}
+.assetbox {
+    margin: 0.5em 0.3em 0.5em 0.3em;
+}
+.assethead {
+    color: #333;
+    font-weight: bold;
+    font-style: italic;
+    padding: 1px 0.5em;
+}
+.assetbody {
+    line-height: 1.3;
+    margin: 0;
+    padding: 0em 0.5em 0.3em 0.5em;
+    list-style: none;
+}
+
+.assetbody li a { display: block; }
+.assethead:after {
+    content: '';
+    width: 11px;
+    height: 11px;
+    margin-left: 4px;
+    display: inline-block;
+}
+
+.assets-word .assethead:after { background-color: #777; }
+.assets-collo .assethead:after { background-color: #0a6; }
+.assets-thes .assethead:after { background-color: #299; }
+.assets-phr .assethead:after { background-color: #a74; }
+.assets-exas .assethead:after { background-color: #a48; }
+
+.assets-link .assethead:after {
+    background: url("static:///images/external.png") no-repeat center center;
+    background-size: 11px 11px;
+}
+
+/* SENSE */
+
+.sense {
+    margin: 0.5em 0 0.7em 0;
+    page-break-inside: avoid;
+}
+.subsense { margin: 0.3em 0; }
+.sensewithnum { margin-left: 1.2em; }
+.sensenum {
+    font-family: Helvetica, Arial, sans-serif;
+    display: inline-block;
+    width: 1.0em;
+    padding-right: 0.4em;
+    margin-left: -1.4em;
+    text-align: right;
+    font-weight: bold;
+    color: #207070;
+}
+.signpost {
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 1px 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: pre;
+    color: white;
+    background-color: #3f7373;
+}
+
+span.gram {
+    font-size: 14px;
+    font-family: "Trebuchet MS", sans-serif;
+}
+
+.lexunit, .sense .lexvar {
+    font-weight: bold;
+    color: #662c00;
+}
+.sense .audio, .runon .audio {
+    margin: 0;
+    padding: 0;
+    margin-right: 6px;
+    text-decoration: none;
+}
+.sense .audio img, .tail .audio img{
+    height: 12px;
+}
+
+span.spokensect {
+    font-weight: bold;
+    font-size: large;
+}
+.example {
+    margin: 0.1em 0 0.1em 1.0em;
+    color: #333;
+}
+.crossref a {
+    color: #730;
+    border-bottom: solid 1px #b8a698;
+    padding-bottom: 1px;
+}
+.crossref a:hover { color: #cc5700; }
+.colloinexa { font-weight: bold }
+.reflex, .relatedwd, .expr { font-weight: bold; }
+.deriv .base, .runon .lexvar .base { font-weight: bold; font-size: large; }
+.refhwd { text-transform: uppercase; font-size: 14px; }
+.nondv { text-transform: uppercase; font-size: 14px; }
+a.nondv { color: inherit; padding-bottom: 1px; border-bottom: solid 1px #b8a698; }
+.goodcollo, .badcollo { font-weight: bold; }
+.badcollo, .badexa { text-decoration: line-through; }
+.warning { color: #b34d00; }
+
+
+/* PHRASAL VERB */
+
+.phrvbentry { margin: 0.7em 0; }
+.phrvbhwd {
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 21px;
+    font-weight: bold;
+    margin-right: 0.2em;
+    color: #662C00;
+}
+.phrvbentry .sense { margin: 0.2em 0; }
+.phrvbentry .sensewithnum { margin-left: 1.2em; }
+
+
+/* BOX (COLLOCATION, THESAURUS, ETC.) */
+
+.thesbox, .f2nbox, .grambox, .collobox {
+    border: 1px solid #666;
+    margin: 0.8em 0;
+    padding: 0 0.35em;
+    clear: both;
+}
+.grambox, .f2nbox {
+    clear: none;
+    overflow: hidden;
+}
+div.heading {
+    display: block;
+    padding: 0.3em 0.35em 0.3em 0.35em;
+    margin:  0 -0.35em;
+    font-weight: bold;
+    color: white;
+    background-color: #444;
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#707070), to(#404040));
+    text-transform: uppercase;
+}
+.grambox div.heading, .f2nbox div.heading {
+    padding: 0.15em 0.35em 0.15em 0.35em;
+}
+span.heading {
+    font-weight: bold;
+    font-size: 90%;
+    display: block;
+    padding: 0.1em 0.35em;
+    margin:  0 -0.35em;
+    text-transform: uppercase;
+}
+.secheading {
+    font-size: 90%;
+    padding: 0.2em 0.35em;
+    margin:  0 -0.35em;
+    text-transform: uppercase;
+    color: white;
+    background-color: #777;
+    font-weight: bold;
+}
+.exponent, .collocate {
+    margin:  0.2em 0;
+    page-break-inside: avoid;
+}
+
+.grambox span.heading {
+    background-color: #888;
+    color: white;
+}
+
+.thesbox { border: 1px solid #579999; }
+.thesbox div.heading {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#579999), color-stop(100%,#3a7070));
+}
+.thesbox .secheading { background-color: #6a9999; }
+.thesbox .thesexa .base { color: #207070; font-size: 14px; }
+
+.collobox { border: solid 1px #44ab7a; }
+.collobox div.heading {
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#44ab7a), color-stop(100%,#3f8c67));
+}
+.collobox .secheading { background-color: #68ba94; }
+.collobox .collexa .base { color: #207070; font-size: 14px; }
+
+.exponent, .collocate { padding-left: 0.5em; }
+.exp, .colloc { margin-left: -0.5em; }
+
+.expl { display: block; }
+.expl .example { display: inline; margin: 0; }
+
+.f2nbox .example, .grambox .example {
+   display: list-item;
+   list-style: circle;
+   margin-left: 2em;
+}
+
+
+/* TARGET */
+
+@media screen {
+.lexunit:target,
+.lexvar:target,
+.orthvar:target,
+.propform:target,
+.propformprep:target,
+.collo:target,
+.example:target,
+.colloc:target,
+.deriv:target,
+.phrvbentry:target .phrvbhwd {
+    border-radius: 4px;
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#ffffcc), to(#ffffbb));
+    box-shadow: 0 0 8px #ffffbb;
+}
+.sense:target,
+.collocate:target,
+.exponent:target {
+    border-radius: 4px;
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#ffffdd), to(#ffffcc));
+    box-shadow: 0 0 8px #ffffcc;
+}
+} /* end of @media screen */
+
+
+/* PRINT */
+
+@media print {
+.assets, .audio { display: none; }
+.example {
+    display: list-item;
+    list-style: circle;
+    margin-left: 2.5em;
+}
+.sensewithnum { margin-left: 1.6em; }
+.sensenum { margin-left: -1.6em; }
+} /* end of @media print */
+

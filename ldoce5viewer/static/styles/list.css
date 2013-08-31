@@ -1,0 +1,26 @@
+body {
+    color: #888;
+    font-size: 13px;
+    font-family: "Trebuchet MS", sans-serif;
+}
+
+.p  { color: #777; font-size: 12px; font-style: italic; }
+.s  { vertical-align: super; }
+
+.h { color: #730; }
+.n { font-weight: bold; }
+.f { font-weight: bold; }
+.pv { font-weight: bold; }
+.v { }
+
+.a { }
+.a .e { color: #208080; font-weight: bold;  }
+.a .c { font-weight: bold; font-size: 12px; letter-spacing: 1px; }
+
+.c { }
+.c .o { color: #333; }
+.c .p { color: #888; }
+
+.l {  }
+.l .o { color: #730; font-weight: bold; }
+.l .p { color: #888; }

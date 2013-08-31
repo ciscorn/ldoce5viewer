@@ -1,0 +1,31 @@
+@import url('common.css');
+@import url('body.css');
+
+/* HEADING */
+
+h2 {
+    font-size: x-large;
+    border-bottom: 4px double;
+    text-transform: uppercase;
+}
+h3 {
+    font-size: large;
+    border-bottom: 1px double;
+}
+
+
+/* COLLOCATION */
+
+.collocate {
+    margin: 0.7em 0 0.7em 1em;
+    page-break-inside: avoid;
+}
+.colloc:first-child { margin-left: -1em; }
+.colloc { font-size: large; }
+.collexa {
+    display: list-item;
+    margin: 0.2em 0 0.2em 1.5em;
+    color: #444;
+}
+
+

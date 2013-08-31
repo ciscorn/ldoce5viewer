@@ -1,0 +1,175 @@
+@import url('common.css');
+
+/* HEADINGS */
+
+h1 {
+    font-size: x-large;
+    border-bottom: 4px double;
+    text-transform: uppercase;
+}
+
+
+/* NAVIGATION */
+
+ul.nav {
+    font-family: 'Segoe UI', 'Tahoma', Verdana, sans-serif;
+    font-size: 9pt;
+    margin: 0;
+    padding: 0;
+}
+
+ul.nav li {
+    display: inline-block;
+    margin: 0.2em 0.2em 0.2em 0;
+}
+
+ul.nav a, ul.nav span.sel {
+    display: block;
+    padding: 0.4em 0.5em;
+    border: 1px solid #999;
+    border-radius: 0.3em;
+    box-shadow: 0 1px 1px #ddd;
+    text-shadow: 0 1px 2px #ffffff;
+}
+
+ul.nav a {
+    color: #111;
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#f7f7f7), to(#d8d8d8));
+}
+ul.nav a:hover {
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#fff), to(#e7e7e7));
+}
+ul.nav span.sel {
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#d6d7dd), to(#e0e8f0));
+}
+
+/* COMMAND */
+
+ul.excmd {
+    font-family: "Segoe UI", "Tahoma", "Helvetica", sans-serif;
+    font-size: small;
+    float: right;
+    margin: 0;
+    padding: 0;
+}
+
+ul.excmd li {
+    display: block;
+    padding: 0;
+    margin: 0;
+    margin-left: 1em;
+}
+
+ul.excmd li a {
+    color: #777;
+    text-decoration: underline;
+}
+
+/* RESULTS */
+
+ul.result {
+    margin: 1em 0;
+    padding: 0 0 0 1.5em;
+}
+ul.result li {
+    margin: 0.2em 0;
+    padding: 0;
+    page-break-inside: avoid;
+}
+ul.result a {
+    padding: 0.2em 0.2em;
+    color: #222;
+    border: 1px solid transparent;
+    border-radius: 0.2em;
+}
+ul.result a:hover {
+    border: 1px solid #ba9;
+    background-color: #fffae7;
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#fffff2), to(#ffffe7));
+    box-shadow: 0 1px 2px #edb;
+}
+
+
+ul.r_examples, ul.r_definitions {
+    margin: 1em 0;
+    padding: 0;
+}
+ul.r_examples li, ul.r_definitions li {
+    margin: 0.4em 0;
+    display: block;
+    list-style: none;
+}
+ul.r_examples a, ul.r_definitions a {
+    display: block;
+    color: #222;
+    padding: 0.2em 0.35em;
+    border: 1px solid #ba9;
+    border-radius: 2px;
+    box-shadow: 0 1px 2px #ccc;
+}
+ul.r_examples a:hover, ul.r_definitions a:hover {
+    background-color: #ffffe0;
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#ffffeb), to(#ffffd9));
+    box-shadow: 0 1px 2px #ccc;
+}
+
+
+.s_match {
+    font-weight: bold;
+}
+
+.entry {
+    display: block;
+}
+
+.label_n, .label_f {
+    font-weight: bold;
+    color: #3f7373;
+}
+.label_pv {
+    font-weight: bold;
+    color: #730;
+}
+.label_b {
+    font-size: small;
+    font-weight: bold;
+    color: #555;
+}
+.label_c, .label_l { color: #777; }
+.label_l .label_o {
+    color: #730;
+    font-weight: bold;
+}
+.label_c .label_o {
+    color: #333;
+    font-weight: bold;
+}
+.label_c .label_n, .label_c .label_f, .label_c .label_p,
+.label_l .label_n, .label_l .label_f, .label_l .label_p 
+{
+    color: #777;
+}
+.label_p {
+    color: #060;
+    font-style: italic;
+    font-size: small;
+}
+.label_s {
+    vertical-align: super;
+    font-size: 75%;
+}
+
+
+/* PRINT */
+
+@media print {
+ul.nav {
+    display: none;
+}
+} /* END of @media print */
+

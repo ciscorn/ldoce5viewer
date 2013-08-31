@@ -1,0 +1,30 @@
+<RCC>
+  <qresource prefix="icons">
+    <file alias="application-exit.png">icons/application-exit-16.png</file>
+    <file alias="document-properties.png">icons/document-properties-16.png</file>
+    <file alias="document-print.png">icons/document-print-16.png</file>
+    <file alias="document-print-preview.png">icons/document-print-preview-16.png</file>
+    <file alias="edit-copy.png">icons/edit-copy-16.png</file>
+    <file alias="edit-clear.png">icons/edit-clear-16.png</file>
+    <file alias="edit-clear22.png">icons/edit-clear-22.png</file>
+    <file alias="edit-find.png">icons/edit-find-16.png</file>
+    <file alias="edit-find22.png">icons/edit-find-22.png</file>
+    <file alias="edit-find24.png">icons/edit-find-24.png</file>
+    <file alias="go-down.png">icons/go-down-16.png</file>
+    <file alias="go-next-mac.png">next-mac.png</file>
+    <file alias="go-previous-mac.png">prev-mac.png</file>
+    <file alias="go-next24.png">icons/go-next-24.png</file>
+    <file alias="go-previous24.png">icons/go-previous-24.png</file>
+    <file alias="go-up.png">icons/go-up-16.png</file>
+    <file alias="help-about.png">icons/help-about-16.png</file>
+    <file alias="help-contents.png">icons/help-contents-16.png</file>
+    <file alias="icon.svg">ldoce5viewer.svg</file>
+    <file alias="icon.png">ldoce5viewer.png</file>
+    <file alias="reload.png">icons/reload-16.png</file>
+    <file alias="window-close.png">icons/window-close-16.png</file>
+    <file alias="zoom-in.png">icons/zoom-in-16.png</file>
+    <file alias="zoom-original.png">icons/zoom-original-16.png</file>
+    <file alias="zoom-out.png">icons/zoom-out-16.png</file>
+    <file alias="iconblock16.png">icons/iconblock-16.png</file>
+  </qresource>
+</RCC>

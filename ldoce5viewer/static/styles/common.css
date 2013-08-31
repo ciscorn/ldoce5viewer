@@ -1,0 +1,61 @@
+html {
+    margin: 0;
+    padding: 0;
+}
+body {
+    margin: 10px 10px 15px;
+    padding: 0;
+    font-family: 'Georgia', serif;
+    line-height: 1.4;
+    color: #202020;
+    background-color: white;
+}
+h1, h2, h3 {
+    font-family: "Trebuchet MS", sans-serif;
+}
+h1:first-child, h2:first-child, h3:first-child { margin-top: 0; }
+a {
+    text-decoration: none;
+    color: #208080;
+}
+a:hover { color: #aa1750; }
+ul, ol { padding-left: 2.5em; }
+.gram { color: #087b44; }
+.geo, .label {
+    color: #087B44;
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 14px;
+}
+.registerlab {
+    color: #087B44;
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 14px;
+}
+.infllab, .linkword, .varitype { font-size: small; }
+.b { font-weight: bold; }
+.i, .italic { font-style: italic; }
+.italic { font-weight: normal; }
+.geo, .example, .pos, .linkword, .varitype,
+.label, .registerlab, .infllab {
+    font-weight: normal;
+    font-style: italic;
+}
+
+.winxpsym {
+    font-family: "Lucida Sans Unicode", sans-serif;
+}
+
+@media print {
+html {
+    margin: auto;
+    padding: auto;
+}
+body {
+    color: black;
+    margin: auto;
+    padding: auto;
+    width: auto;
+}
+} /* end of @media print */
+
+

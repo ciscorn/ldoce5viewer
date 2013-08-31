@@ -1,0 +1,13 @@
+@import url('common.css');
+
+h1 {
+    font-size: x-large;
+    margin: 0;
+}
+h1 .pos { font-size: large; }
+.example {
+    font-style: normal;
+    margin: 0.3em 0;
+    page-break-inside: avoid;
+}
+

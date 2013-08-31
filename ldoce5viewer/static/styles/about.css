@@ -1,0 +1,34 @@
+body {
+    font-family: Georgia, serif;
+    line-height: 1.4;
+    color: #333;
+}
+
+h1 {
+    font-size: x-large;
+    font-family: "Trebuchet MS", sans-serif;
+    border-bottom: 4px double #444;
+    margin-top: 0;
+}
+
+h2 {
+    font-size: large;
+    font-family: "Trebuchet MS", sans-serif;
+    border-bottom: 1px solid #aaa;
+}
+
+a {
+    text-decoration: none;
+    color: #208080;
+}
+a:hover { color: #951740; }
+
+a.external {
+    padding-right: 13px;
+    background: url("static:///images/external-link.png") no-repeat right center;
+    background-size: 10px 10px;
+}
+a.external:hover {
+    background-image: url("static:///images/external-hover.png");
+}
+

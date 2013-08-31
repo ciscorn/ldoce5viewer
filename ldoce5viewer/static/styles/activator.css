@@ -1,0 +1,123 @@
+@import url('common.css');
+@import url('body.css');
+
+
+@media screen {
+html { height: 100%; }
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+#section_w {
+    height: 100%;
+    float: right;
+    width: 100%;
+    margin-left: -280px;
+}
+#section {
+    height: 100%;
+    padding: 0 15px;
+    margin-left: 280px;
+    overflow: auto;
+}
+#concept {
+    height: 100%;
+    position: relative;
+    padding: 0 10px;
+    width: 260px;
+    overflow: auto;
+}
+} /* END @media screen */
+
+@media print {
+#concept { display: none; }
+} /* END @media print */
+
+
+/* CONCEPT */
+
+#concept h1 {
+    margin: 5px 0 10px;
+    font-size: x-large;
+}
+#concept h2 {
+    margin: 15px 0;
+    font-size: large;
+    text-transform: capitalize;
+}
+#concept .secnr {
+    float: left;
+    width: 1.4em;
+    padding: 0.1em 0;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 95%;
+    font-family: "Trebuchet MS", sans-serif;
+}
+#concept ul {
+    padding-left: 1.8em;
+    font-size: 95%;
+}
+#concept ul li {
+    margin: 0.2em 0 0.2em 0;
+}
+#concept .section {
+    margin: 0.3em 0 0.3em 1.8em;
+}
+#concept .section a {
+    display: block;
+    padding: 2px 0.35em 3px;
+    vertical-align: middle;
+    line-height: 1.3;
+    background: -webkit-gradient(linear, left top, left bottom,
+                        color-stop(0%,#fcfcfc), color-stop(100%,#f8f8f7));
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+}
+#concept .sel a {
+    background: -webkit-gradient(linear, left top, left bottom,
+                        color-stop(0%,#edf7f7), color-stop(100%,#dfebeb));
+    border: 1px solid #a7b2b2;
+    border-radius: 3px;
+    color: #202020;
+}
+
+
+/* SECTION */
+
+#section .exponent {
+    margin: 0.4em 0;
+    padding: 4px 5px 4px 10px;
+    page-break-inside: avoid;
+}
+#section .exas { display: block; }
+#section .exp { margin-left: -10px; }
+#section .spelling { font-weight: bold; }
+#section .exponent .repeat { font-weight: bold; }
+#section .exponent .example {
+    display: list-item;
+    color: #333;
+    margin: 0.1em 0 0.1em 2em;
+}
+#section .exp { font-size: large; }
+#section h1 {
+    margin-top: 5px;
+    font-size: x-large;
+}
+
+@media screen {
+#section .exponent:target {
+    margin: 0.3em -7px;
+    padding: 3px 4px 3px 16px;
+    border: 1px solid #ba9;
+    background: -webkit-gradient(linear, center top, center bottom,
+                            from(#fffff7), to(#fffff0));
+    box-shadow: 0 1px 5px #ccb;
+    border-radius: 3px;
+}
+} /* END @media screen */
+

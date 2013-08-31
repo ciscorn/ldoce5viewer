@@ -1,0 +1,27 @@
+@import url('common.css');
+@import url('body.css');
+
+.head {
+    font-size: x-large;
+    font-weight: bold;
+}
+.head .hwd {
+    font-size: 26px;
+    font-family: "Trebuchet MS", sans-serif;
+}
+.lead { font-weight: bold }
+.origin { color: #087b44; }
+
+.sense {
+    display: block;
+    margin: 0.5em 0;
+}
+
+.sense br:first-child {
+    display: none;
+}
+
+.refhom {
+    font-size: small;
+    vertical-align: super;
+}

@@ -1,0 +1,21 @@
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="48px" height="48px" id="svg2987" version="1.1" inkscape:version="0.48.3.1 r9886" sodipodi:docname="document-properties.svg" inkscape:export-xdpi="90" inkscape:export-ydpi="90">
+  <defs id="defs2989"/>
+  <sodipodi:namedview id="base" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:zoom="9.8994949" inkscape:cx="31.929941" inkscape:cy="16.281387" inkscape:current-layer="g3814" showgrid="true" inkscape:grid-bbox="true" inkscape:document-units="px" inkscape:window-width="1920" inkscape:window-height="1022" inkscape:window-x="0" inkscape:window-y="26" inkscape:window-maximized="1" showguides="true" inkscape:guide-bbox="true">
+    <inkscape:grid type="xygrid" id="grid2995" empspacing="6" visible="true" enabled="true" snapvisiblegridlinesonly="true" dotted="false"/>
+  </sodipodi:namedview>
+  <metadata id="metadata2992">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title/>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g id="layer1" inkscape:label="Layer 1" inkscape:groupmode="layer">
+    <g id="g3814" mask="none">
+      <path style="fill:#4d4d4d;fill-opacity:1;stroke:none" d="M 20 3 L 19 6.71875 C 17.711741 7.0914347 16.46427 7.6147701 15.3125 8.25 L 12 6 L 6 12 L 8.25 15.3125 C 7.6147701 16.46427 7.0914347 17.711741 6.71875 19 L 3 20 L 3 28 L 6.71875 29 C 7.0914347 30.288259 7.6147701 31.53573 8.25 32.6875 L 6 36 L 12 42 L 15.3125 39.75 C 16.46427 40.38523 17.711741 40.908565 19 41.28125 L 20 45 L 28 45 L 29 41.28125 C 30.288259 40.908565 31.53573 40.38523 32.6875 39.75 L 36 42 L 42 36 L 39.75 32.6875 C 40.38523 31.53573 40.908565 30.288259 41.28125 29 L 45 28 L 45 20 L 41.28125 19 C 40.908565 17.711741 40.38523 16.46427 39.75 15.3125 L 42 12 L 36 6 L 32.6875 8.25 C 31.53573 7.6147701 30.288259 7.0914347 29 6.71875 L 28 3 L 20 3 z M 24 15 C 28.970562 15 33 19.029437 33 24 C 33 28.970563 28.970562 33 24 33 C 19.029438 33 15 28.970563 15 24 C 15 19.029437 19.029438 15 24 15 z " id="path2991"/>
+    </g>
+  </g>
+</svg>

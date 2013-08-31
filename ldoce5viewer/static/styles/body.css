@@ -1,0 +1,57 @@
+/* BOLD */
+.amequiv, .brequiv, .orthvar, .fullform, .pasttense, .pastpart, .prespart,
+.ptandpp, .t3perssing, .pluralform, .comp, .superl, .lexvar,
+.abbr, .synopp, .syn, .opp,
+.colloc, .exp,
+.exponent .var,
+.hint .hintbo, .hint .hintbold,
+.defbold
+{
+    font-weight: bold;
+}
+.hintitalic { font-style: italic; }
+
+/* ITALIC */
+.thesexa, .collexa { font-style: italic; }
+
+.propform, .propformprep, .collo, .thespropform {
+    font-weight: bold;
+    color: #662c00;
+}
+.hint {
+    margin: 0.4em 0;
+    padding: 0.2em 0.3em;
+    border: 1px solid #777;
+    border-radius: 3px;
+    clear: none;
+    overflow: hidden;
+}
+.syn, .opp {
+    display: inline-block;
+}
+.synopp {
+    font-family: "Trebuchet MS", sans-serif;
+    padding: 1px 3px;
+    font-size: normal;
+    color: white;
+    background-color: #730;
+    border-radius: 2px;
+    font-size: 12px;
+    vertical-align: text-bottom;
+}
+
+.pron, .amevarpron {
+    font-family: 'Lucida Sans Unicode', 'Lucida Grande',
+        'Gentium Plus', 'Gentium', 'DejaVu Sans', 'Arial Unicode MS',
+        'sans-serif';
+    font-size: 90%;
+}
+
+.homnum, .refhomnum {
+    vertical-align: super;
+    font-size: medium;
+}
+
+.amequiv, .brequiv {
+    display: inline-block;
+}

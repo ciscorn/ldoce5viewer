@@ -1,0 +1,12 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Name=LDOCE5 Viewer
+Comment=A dictionary viewer for LDOCE5
+Categories=Education;Dictionary
+Exec=ldoce5viewer
+Icon=ldoce5viewer
+Terminal=false
+Type=Application
+Version=1.0
+

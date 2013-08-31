@@ -1,0 +1,26 @@
+@import url('common.css');
+@import url('body.css');
+
+/* HEADING */
+
+h2 {
+    font-size: x-large;
+    border-bottom: 1px solid;
+}
+
+
+/* EXPONENT */
+
+.exponent {
+    margin: 0.7em 0 0.7em 0.7em;
+    page-break-inside: avoid;
+}
+.colloc:first-child { margin-left: -0.7em; }
+.colloc { font-size: large; }
+.thesexa {
+    display: list-item;
+    margin: 0.2em 0 0.2em 1.5em;
+}
+.propexa { display: block; }
+.propexa .thesexa { margin-left: 2.5em; }
+

@@ -1,0 +1,9 @@
+@import url('common.css');
+
+h2 {
+    font-size: large;
+    font-style: italic;
+    font-weight: normal;
+}
+li { font-weight: bold; }
+

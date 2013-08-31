@@ -1,0 +1,11 @@
+LDOCE5 Viewer:
+    by Taku Fukada
+    GNU General Public License version 3 or later
+
+An implementaiton of cdb (./ldoce5viewer/utils/cdb.py):
+    Public Domain
+
+Whoosh (./ldoce5viewer/whoosh/):
+    by Matt Chaput
+    (two-clause) BSD License
+
