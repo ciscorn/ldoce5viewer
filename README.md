@@ -5,13 +5,13 @@ The LDOCE5 Viewer is an alternative dictionary viewer for the Longman Dictionary
 
 It runs on Linux and Microsoft Windows.
 
-This software is free and open source software licensed under the terms of GPLv3.
-
 Website: http://hakidame.net/ldoce5viewer/
+
+This software is free and open source software licensed under the terms of GPLv3.
 
 
 Prerequisites
-=============
+-------------
 
 * Python 2.7 or 2.6 (not 3.x)
 
@@ -32,10 +32,9 @@ Prerequisites
 
 
 Installation
-============
+------------
 
-Linux
------
+###Linux
 
 1. Enter the following commands in the terminal:
 
@@ -51,24 +50,4 @@ $ [ -x /usr/bin/update-desktop-database ] && sudo update-desktop-database -q
 3. Start the LDOCE5 Viewer.
 
 4. The application will ask you the location where you put 'ldoce5.data'.
-
-
-Terms and Conditions
-====================
-
-Copyright (c) 2012-2013 Taku Fukada
-
-This software is licensed under the GPLv3.
-
-Discraimer
-----------
-
-  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
-APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
-HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
-OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
-IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
-ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
