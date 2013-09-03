@@ -17,18 +17,23 @@ Prerequisites
 
 * PyQt
 
-    - `python-qt4` (in Ubuntu/Mint/Debian)
-    - `python2-pyqt` (in Arch Linux)
+    - `python-qt4` (Ubuntu/Mint/Debian)
+    - `python2-pyqt` (Arch Linux)
 
 * lxml
 
-    - `python-lxml` (in Ubuntu/Mint/Debian)
-    - `python2-lxml` (in Arch Linux)
+    - `python-lxml` (Ubuntu/Mint/Debian)
+    - `python2-lxml` (Arch Linux)
 
 * [On Linux] Python bindings for Gstreamer
 
-    - `python-gst` (in Ubuntu/Mint/Debian)
-    - `gstreamer0.10-python` (in Arch Linux)
+    - `python-gst` (Ubuntu/Mint/Debian)
+    - `gstreamer0.10-python` (Arch Linux)
+
+* [On Linux] Gstreamer plugins for MP3 audio playback
+
+    - `gst-plugins-good` and `gst-plugins-ugly` (Ubuntu/Mint/Debian)
+    - `gstreamer-plugins-good` and `gstreamer-plugins-ugly` (Arch Linux)
 
 
 Installation
