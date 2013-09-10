@@ -1,6 +1,6 @@
 '''Full-text searcher for headwords/phrases/examples/definitions
 
-It is powered by the Whoosh FTS library.
+powered by the Whoosh FTS library
 '''
 
 from __future__ import absolute_import
@@ -14,10 +14,11 @@ from .whoosh import index as wh_index
 from .whoosh.fields import Schema, STORED, IDLIST, ID, TEXT
 from .whoosh.analysis import StandardAnalyzer, Filter
 from .whoosh.query import Variations, Term, Or, And
-from .whoosh.qparser import QueryParser,\
+from .whoosh.qparser import QueryParser, \
     RangePlugin, BoostPlugin, WildcardPlugin, OperatorsPlugin
 from .whoosh.highlight import WholeFragmenter, HtmlFormatter
-from .whoosh.searching import Collector, Aborted
+from .whoosh.collectors import WrappingCollector, \
+        UnlimitedCollector, TopCollector
 
 from .utils.cdb import CDBReader, CDBMaker, CDBError
 from .utils.text import normalize_token, normalize_index_key,\
@@ -26,6 +27,26 @@ from .utils.text import normalize_token, normalize_index_key,\
 
 class IndexError(Exception):
     pass
+
+
+class AbortableCollector(WrappingCollector):
+    def __init__(self, child):
+        WrappingCollector.__init__(self, child)
+        self._aborted = False
+
+    def collect_matches(self):
+        collect = self.collect
+        for sub_docnum in self.matches():
+            if self._aborted:
+                break
+            collect(sub_docnum)
+
+    @property
+    def aborted(self):
+        return self._aborted
+
+    def abort(self):
+        self._aborted = True
 
 
 #-----------------
@@ -228,16 +249,19 @@ class Searcher(object):
         except (EnvironmentError, CDBError):
             return None
 
-    def make_collector(self, limit):
-        return Collector(limit=limit)
-
     def correct(self, misspelled, limit=5):
         with self._index.searcher() as searcher:
             corrector = searcher.corrector("content")
             return corrector.suggest(misspelled, limit)
 
-    def search(self, query_str1=None, query_str2=None, itemtypes=(),
-               limit=1000, highlight=False, collector=None):
+    def make_collector(self, limit=None):
+        if limit is None:
+            return AbortableCollector(UnlimitedCollector())
+        else:
+            return AbortableCollector(TopCollector(limit))
+
+    def search(self, collector, query_str1=None, query_str2=None,
+               itemtypes=(), highlight=False):
 
         # rejects '*' and '?'
         if query_str1:
@@ -269,11 +293,8 @@ class Searcher(object):
 
             query = And(andlist)
 
-            # Search
-            if collector:
-                hits = collector.search(searcher, query)
-            else:
-                hits = searcher.search(query, limit=limit)
+            searcher.search_with_collector(query, collector)
+            hits = collector.results()
 
             if highlight:
                 hits.fragmenter = WholeFragmenter()
@@ -287,8 +308,8 @@ class Searcher(object):
             # Construct a result list
             results = []
             for hit in hits:
-                if collector and collector._aborted:
-                    raise Aborted
+                if collector.aborted:
+                    return []
                 (label, path, prio, sortkey) = hit['data']
 
                 if wildcard and query_str1:
@@ -310,3 +331,4 @@ class Searcher(object):
 
             # Return
             return results
+

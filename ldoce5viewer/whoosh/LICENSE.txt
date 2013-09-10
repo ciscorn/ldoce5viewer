@@ -1,4 +1,0 @@
-Author: Matt Chaput
-License: (two-clause) BSD license
-Homepage: https://bitbucket.org/mchaput/whoosh/wiki/Home
-

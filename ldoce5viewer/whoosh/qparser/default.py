@@ -27,9 +27,10 @@
 
 import sys
 
-from .. import query
-from . import syntax
-from .common import print_debug, QueryParserError
+from whoosh import query
+from whoosh.compat import text_type
+from whoosh.qparser import syntax
+from whoosh.qparser.common import print_debug, QueryParserError
 
 
 # Query parser object
@@ -38,12 +39,12 @@ class QueryParser(object):
     """A hand-written query parser built on modular plug-ins. The default
     configuration implements a powerful fielded query language similar to
     Lucene's.
-    
+
     You can use the ``plugins`` argument when creating the object to override
     the default list of plug-ins, and/or use ``add_plugin()`` and/or
     ``remove_plugin_class()`` to change the plug-ins included in the parser.
-    
-    >>>  import qparser
+
+    >>> from whoosh import qparser
     >>> parser = qparser.QueryParser("content", schema)
     >>> parser.remove_plugin_class(qparser.WildcardPlugin)
     >>> parser.add_plugin(qparser.PrefixPlugin())
@@ -89,7 +90,7 @@ class QueryParser(object):
         """Returns the default list of plugins to use.
         """
 
-        from . import plugins
+        from whoosh.qparser import plugins
 
         return [plugins.WhitespacePlugin(),
                 plugins.SingleQuotePlugin(),
@@ -120,7 +121,7 @@ class QueryParser(object):
         self.plugins.append(pin)
 
     def _add_ws_plugin(self):
-        from .plugins import WhitespacePlugin
+        from whoosh.qparser.plugins import WhitespacePlugin
         self.add_plugin(WhitespacePlugin())
 
     def remove_plugin(self, pi):
@@ -141,7 +142,7 @@ class QueryParser(object):
         it. This is a convenience method to keep from having to call
         ``remove_plugin_class`` followed by ``add_plugin`` each time you want
         to reconfigure a default plugin.
-        
+
         >>> qp = qparser.QueryParser("content", schema)
         >>> qp.replace_plugin(qparser.NotPlugin("(^| )-"))
         """
@@ -168,7 +169,7 @@ class QueryParser(object):
         intention specified in the field's ``multitoken_query`` attribute,
         which specifies what to do when strings that look like single terms
         to the parser turn out to yield multiple tokens when analyzed.
-        
+
         :param spec: a string describing how to join the text strings into a
             query. This is usually the value of the field's
             ``multitoken_query`` attribute.
@@ -212,7 +213,8 @@ class QueryParser(object):
             # and return early
             if field.self_parsing():
                 try:
-                    return field.parse_query(fieldname, text, boost=boost)
+                    q = field.parse_query(fieldname, text, boost=boost)
+                    return q
                 except:
                     e = sys.exc_info()[1]
                     return query.error_query(e)
@@ -234,7 +236,6 @@ class QueryParser(object):
             # example, on a stop word)
             if not texts:
                 return None
-
             text = texts[0]
 
         return termclass(fieldname, text, boost=boost)
@@ -256,7 +257,7 @@ class QueryParser(object):
     def tag(self, text, pos=0, debug=False):
         """Returns a group of syntax nodes corresponding to the given text,
         created by matching the Taggers provided by the parser's plugins.
-        
+
         :param text: the text to tag.
         :param pos: the position in the text to start tagging at.
         """
@@ -282,7 +283,7 @@ class QueryParser(object):
             # Try each tagger to see if it matches at the current position
             for tagger in taggers:
                 node = tagger.match(self, text, pos)
-                if node:
+                if node is not None:
                     if node.endchar <= pos:
                         raise Exception("Token %r did not move cursor forward."
                                         " (%r, %s)" % (tagger, text, pos))
@@ -328,7 +329,7 @@ class QueryParser(object):
     def process(self, text, pos=0, debug=False):
         """Returns a group of syntax nodes corresponding to the given text,
         tagged by the plugin Taggers and filtered by the plugin filters.
-        
+
         :param text: the text to tag.
         :param pos: the position in the text to start tagging at.
         """
@@ -339,14 +340,17 @@ class QueryParser(object):
 
     def parse(self, text, normalize=True, debug=False):
         """Parses the input string and returns a :class:`whoosh.query.Query`
-        object/tree. 
-        
-        :param text: the string to parse.
+        object/tree.
+
+        :param text: the unicode string to parse.
         :param normalize: whether to call normalize() on the query object/tree
             before returning it. This should be left on unless you're trying to
             debug the parser output.
         :rtype: :class:`whoosh.query.Query`
         """
+
+        if not isinstance(text, text_type):
+            text = text.decode("latin1")
 
         nodes = self.process(text, debug=debug)
         print_debug(debug, "Syntax tree: %r" % nodes)
@@ -369,19 +373,19 @@ class QueryParser(object):
 
 def MultifieldParser(fieldnames, schema, fieldboosts=None, **kwargs):
     """Returns a QueryParser configured to search in multiple fields.
-    
+
     Instead of assigning unfielded clauses to a default field, this parser
     transforms them into an OR clause that searches a list of fields. For
     example, if the list of multi-fields is "f1", "f2" and the query string is
     "hello there", the class will parse "(f1:hello OR f2:hello) (f1:there OR
     f2:there)". This is very useful when you have two textual fields (e.g.
     "title" and "content") you want to search by default.
-    
+
     :param fieldnames: a list of field names to search.
     :param fieldboosts: an optional dictionary mapping field names to boosts.
     """
 
-    from .plugins import MultifieldPlugin
+    from whoosh.qparser.plugins import MultifieldPlugin
 
     p = QueryParser(None, schema, **kwargs)
     mfp = MultifieldPlugin(fieldnames, fieldboosts=fieldboosts)
@@ -394,7 +398,7 @@ def SimpleParser(fieldname, schema, **kwargs):
     syntax.
     """
 
-    from . import plugins
+    from whoosh.qparser import plugins
 
     pins = [plugins.WhitespacePlugin,
             plugins.PlusMinusPlugin,
@@ -406,11 +410,11 @@ def DisMaxParser(fieldboosts, schema, tiebreak=0.0, **kwargs):
     """Returns a QueryParser configured to support only +, -, and phrase
     syntax, and which converts individual terms into DisjunctionMax queries
     across a set of fields.
-    
+
     :param fieldboosts: a dictionary mapping field names to boosts.
     """
 
-    from . import plugins
+    from whoosh.qparser import plugins
 
     mfp = plugins.MultifieldPlugin(list(fieldboosts.keys()),
                                    fieldboosts=fieldboosts,

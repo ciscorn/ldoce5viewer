@@ -2,7 +2,7 @@
 Contains functions implementing edit distance algorithms.
 """
 
-from ..compat import xrange
+from whoosh.compat import xrange
 
 
 def levenshtein(seq1, seq2, limit=None):

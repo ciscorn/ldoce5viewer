@@ -29,13 +29,14 @@ import re
 import sys
 from datetime import datetime, timedelta
 
-from ..compat import string_type, iteritems
-from . import plugins, syntax
-from ..taggers import Tagger
-from ..support.relativedelta import relativedelta
-from ..support.times import (adatetime, timespan, fill_in, is_void,
-                                  TimeError, relative_days)
-from ..util import rcompile
+from whoosh.compat import string_type, iteritems
+from whoosh.qparser import plugins, syntax
+from whoosh.qparser.taggers import Tagger
+from whoosh.support.relativedelta import relativedelta
+from whoosh.util.text import rcompile
+from whoosh.util.times import adatetime, timespan
+from whoosh.util.times import fill_in, is_void, relative_days
+from whoosh.util.times import TimeError
 
 
 class DateParseError(Exception):
@@ -77,10 +78,10 @@ class ParserBase(object):
         else:
             return e
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         raise NotImplementedError
 
-    def date_from(self, text, dt=None, pos=0, debug= -9999):
+    def date_from(self, text, dt=None, pos=0, debug=-9999):
         if dt is None:
             dt = datetime.now()
 
@@ -131,7 +132,7 @@ class Sequence(MultiBase):
             self.sep_expr = None
         self.progressive = progressive
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         d = adatetime()
         first = True
         foundall = False
@@ -187,7 +188,7 @@ class Sequence(MultiBase):
 class Combo(Sequence):
     """Parses a sequence of elements in order and combines the dates parsed
     by the sub-elements somehow. The default behavior is to accept two dates
-    from the sub-elements and turn them into a range. 
+    from the sub-elements and turn them into a range.
     """
 
     def __init__(self, elements, fn=None, sep="(\\s+|\\s*,\\s*)", min=2, max=2,
@@ -209,7 +210,7 @@ class Combo(Sequence):
         self.min = min
         self.max = max
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         dates = []
         first = True
 
@@ -264,7 +265,7 @@ class Choice(MultiBase):
     """Returns the date from the first of its sub-elements that matches.
     """
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         print_debug(debug, "Choice %s text=%r", self.name, text[pos:])
         for e in self.elements:
             print_debug(debug, "Choice %s trying=%r", self.name, e)
@@ -309,7 +310,7 @@ class Bag(MultiBase):
         self.allof = allof
         self.anyof = anyof
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         first = True
         d = adatetime()
         seen = [False] * len(self.elements)
@@ -372,7 +373,7 @@ class Optional(ParserBase):
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.element)
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         try:
             d, pos = self.element.parse(text, dt, pos, debug + 1)
         except TimeError:
@@ -395,7 +396,7 @@ class ToEnd(ParserBase):
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.element)
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         try:
             d, pos = self.element.parse(text, dt, pos, debug + 1)
         except TimeError:
@@ -410,10 +411,10 @@ class ToEnd(ParserBase):
 class Regex(ParserBase):
     """Matches a regular expression and maps named groups in the pattern to
     datetime attributes using a function or overridden method.
-    
+
     There are two points at which you can customize the behavior of this class,
     either by supplying functions to the initializer or overriding methods.
-    
+
     * The ``modify`` function or ``modify_props`` method takes a ``Props``
       object containing the named groups and modifies its values (in place).
     * The ``fn`` function or ``props_to_date`` method takes a ``Props`` object
@@ -432,7 +433,7 @@ class Regex(ParserBase):
     def __repr__(self):
         return "<%r>" % (self.pattern,)
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         m = self.expr.match(text, pos)
         if not m:
             return (None, None)
@@ -617,7 +618,7 @@ class DateParser(object):
     def get_parser(self):
         return self.all
 
-    def parse(self, text, dt, pos=0, debug= -9999):
+    def parse(self, text, dt, pos=0, debug=-9999):
         parser = self.get_parser()
 
         d, newpos = parser.parse(text, dt, pos=pos, debug=debug)
@@ -626,7 +627,7 @@ class DateParser(object):
 
         return (d, newpos)
 
-    def date_from(self, text, basedate=None, pos=0, debug= -9999, toend=True):
+    def date_from(self, text, basedate=None, pos=0, debug=-9999, toend=True):
         if basedate is None:
             basedate = datetime.utcnow()
 
@@ -673,12 +674,12 @@ class English(DateParser):
                            name="time")
 
         def tomorrow_to_date(p, dt):
-            d = dt.date() + timedelta(days= +1)
+            d = dt.date() + timedelta(days=+1)
             return adatetime(year=d.year, month=d.month, day=d.day)
         tomorrow = Regex("tomorrow", tomorrow_to_date)
 
         def yesterday_to_date(p, dt):
-            d = dt.date() + timedelta(days= -1)
+            d = dt.date() + timedelta(days=-1)
             return adatetime(year=d.year, month=d.month, day=d.day)
         yesterday = Regex("yesterday", yesterday_to_date)
 
@@ -725,7 +726,7 @@ class English(DateParser):
 
 class DateParserPlugin(plugins.Plugin):
     """Adds more powerful parsing of DATETIME fields.
-    
+
     >>> parser.add_plugin(DateParserPlugin())
     >>> parser.parse(u"date:'last tuesday'")
     """
@@ -823,7 +824,7 @@ class DateParserPlugin(plugins.Plugin):
         if not schema:
             return group
 
-        from ..fields import DATETIME
+        from whoosh.fields import DATETIME
         datefields = frozenset(fieldname for fieldname, field
                                in parser.schema.items()
                                if isinstance(field, DATETIME))
@@ -857,13 +858,14 @@ class DateTimeNode(syntax.SyntaxNode):
         return repr(self.dt)
 
     def query(self, parser):
-        from .. import query
+        from whoosh import query
 
         fieldname = self.fieldname or parser.fieldname
         field = parser.schema[fieldname]
         dt = self.dt
         if isinstance(self.dt, datetime):
-            return query.Term(fieldname, field.to_text(dt), boost=self.boost)
+            btext = field.to_bytes(dt)
+            return query.Term(fieldname, btext, boost=self.boost)
         elif isinstance(self.dt, timespan):
             return query.DateRange(fieldname, dt.start, dt.end,
                                    boost=self.boost)
@@ -885,7 +887,7 @@ class DateRangeNode(syntax.SyntaxNode):
         return "%r-%r" % (self.start, self.end)
 
     def query(self, parser):
-        from .. import query
+        from whoosh import query
 
         fieldname = self.fieldname or parser.fieldname
         return query.DateRange(fieldname, self.start, self.end,
@@ -898,7 +900,7 @@ class DateTagger(Tagger):
         self.expr = rcompile(expr, re.IGNORECASE)
 
     def match(self, parser, text, pos):
-        from ..fields import DATETIME
+        from whoosh.fields import DATETIME
 
         match = self.expr.match(text, pos)
         if match:

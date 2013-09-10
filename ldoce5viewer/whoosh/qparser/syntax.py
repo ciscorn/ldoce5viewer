@@ -27,8 +27,8 @@
 
 import sys, weakref
 
-from .. import query
-from .common import get_single_text, QueryParserError, attach
+from whoosh import query
+from whoosh.qparser.common import get_single_text, QueryParserError, attach
 
 
 class SyntaxNode(object):
@@ -36,9 +36,9 @@ class SyntaxNode(object):
     parsed user query string. The AST is an intermediate step, generated
     from the query string, then converted into a :class:`whoosh.query.Query`
     tree by calling the ``query()`` method on the nodes.
-    
+
     Instances have the following required attributes:
-    
+
     ``has_fieldname``
         True if this node has a ``fieldname`` attribute.
     ``has_text``
@@ -96,11 +96,14 @@ class SyntaxNode(object):
 
         return False
 
+    def is_text(self):
+        return False
+
     def set_fieldname(self, name, override=False):
         """Sets the fieldname associated with this node. If ``override`` is
         False (the default), the fieldname will only be replaced if this node
         does not already have a fieldname set.
-        
+
         For nodes that don't have a fieldname, this is a no-op.
         """
 
@@ -113,7 +116,7 @@ class SyntaxNode(object):
 
     def set_boost(self, boost):
         """Sets the boost associated with this node.
-        
+
         For nodes that don't have a boost, this is a no-op.
         """
 
@@ -186,16 +189,16 @@ class FieldnameNode(SyntaxNode):
 class GroupNode(SyntaxNode):
     """Base class for abstract syntax tree node types that group together
     sub-nodes.
-    
+
     Instances have the following attributes:
-    
+
     ``merging``
         True if side-by-side instances of this group can be merged into a
         single group.
     ``qclass``
         If a subclass doesn't override ``query()``, the base class will simply
         wrap this class around the queries returned by the subnodes.
-    
+
     This class implements a number of list methods for operating on the
     subnodes.
     """
@@ -241,11 +244,11 @@ class GroupNode(SyntaxNode):
 
     def empty_copy(self):
         """Returns an empty copy of this group.
-        
+
         This is used in the common pattern where a filter creates an new
         group and then adds nodes from the input group to it if they meet
         certain criteria, then returns the new group::
-        
+
             def remove_whitespace(parser, group):
                 newgroup = group.empty_copy()
                 for node in group:
@@ -304,8 +307,8 @@ class GroupNode(SyntaxNode):
     def extend(self, vs):
         self.nodes.extend(vs)
 
-    def pop(self):
-        return self.nodes.pop()
+    def pop(self, *args, **kwargs):
+        return self.nodes.pop(*args, **kwargs)
 
     def reverse(self):
         self.nodes.reverse()
@@ -359,7 +362,9 @@ class Wrapper(GroupNode):
     merging = False
 
     def query(self, parser):
-        return attach(self.qclass(self.nodes[0].query(parser)), self)
+        q = self.nodes[0].query(parser)
+        if q:
+            return attach(self.qclass(q), self)
 
 
 class ErrorNode(SyntaxNode):
@@ -393,6 +398,12 @@ class AndGroup(GroupNode):
 
 class OrGroup(GroupNode):
     qclass = query.Or
+
+    @classmethod
+    def factory(cls, scale=1.0):
+        def maker(nodes=None, **kwargs):
+            return cls(nodes=nodes, scale=scale, **kwargs)
+        return maker
 
 
 class DisMaxGroup(GroupNode):
@@ -472,9 +483,9 @@ class RangeNode(SyntaxNode):
 class TextNode(SyntaxNode):
     """Intermediate base class for basic nodes that search for text, such as
     term queries, wildcards, prefixes, etc.
-    
+
     Instances have the following attributes:
-    
+
     ``qclass``
         If a subclass does not override ``query()``, the base class will use
         this class to construct the query.
@@ -502,6 +513,9 @@ class TextNode(SyntaxNode):
     def r(self):
         return "%s %r" % (self.__class__.__name__, self.text)
 
+    def is_text(self):
+        return True
+
     def query(self, parser):
         fieldname = self.fieldname or parser.fieldname
         termclass = self.qclass or parser.termclass
@@ -526,7 +540,7 @@ class WordNode(TextNode):
 
 class Operator(SyntaxNode):
     """Base class for PrefixOperator, PostfixOperator, and InfixOperator.
-    
+
     Operators work by moving the nodes they apply to (e.g. for prefix operator,
     the previous node, for infix operator, the nodes on either side, etc.) into
     a group node. The group provides the code for what to do with the nodes.

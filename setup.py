@@ -87,6 +87,8 @@ setup(
         'ldoce5viewer.whoosh.support',
         'ldoce5viewer.whoosh.filedb',
         'ldoce5viewer.whoosh.qparser',
+        'ldoce5viewer.whoosh.query',
+        'ldoce5viewer.whoosh.analysis',
         ],
     package_data = {'ldoce5viewer': list(iter_static())},
     scripts = ['scripts/ldoce5viewer'],

@@ -30,8 +30,9 @@ This module contains common utility objects/functions for the other query
 parser modules.
 """
 
-from __future__ import print_function
-from ..compat import string_type
+import sys
+
+from whoosh.compat import string_type
 
 
 class QueryParserError(Exception):
@@ -55,6 +56,6 @@ def attach(q, stxnode):
     return q
 
 
-def print_debug(level, msg):
+def print_debug(level, msg, out=sys.stderr):
     if level:
-        print("  " * (level - 1), msg)
+        out.write("%s%s\n" % (" " * (level - 1), msg))

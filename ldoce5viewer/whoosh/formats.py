@@ -33,10 +33,11 @@ occurance of a term.
 
 from collections import defaultdict
 
-from .analysis import unstopped, entoken
-from .compat import iteritems, dumps, loads, b
-from .system import (_INT_SIZE, _FLOAT_SIZE, pack_uint, unpack_uint,
-                           pack_float, unpack_float)
+from whoosh.analysis import unstopped, entoken
+from whoosh.compat import iteritems, dumps, loads, b
+from whoosh.system import emptybytes
+from whoosh.system import _INT_SIZE, _FLOAT_SIZE
+from whoosh.system import pack_uint, unpack_uint, pack_float, unpack_float
 
 
 # Format base class
@@ -69,6 +70,11 @@ class Format(object):
     def __repr__(self):
         return "%s(boost=%s)" % (self.__class__.__name__, self.field_boost)
 
+    def fixed_value_size(self):
+        if self.posting_size < 0:
+            return None
+        return self.posting_size
+
     def word_values(self, value, analyzer, **kwargs):
         """Takes the text value to be indexed and yields a series of
         ("tokentext", frequency, weight, valuestring) tuples, where frequency
@@ -78,16 +84,11 @@ class Format(object):
         token. For example, in a Frequency format, the value string would be
         the same as frequency; in a Positions format, the value string would
         encode a list of token positions at which "tokentext" occured.
-        
+
         :param value: The unicode text to index.
         :param analyzer: The analyzer to use to process the text.
         """
 
-        raise NotImplementedError
-
-    def encode(self, value):
-        """Returns the given value encoded as a string.
-        """
         raise NotImplementedError
 
     def supports(self, name):
@@ -117,7 +118,6 @@ class Format(object):
 # weight in the value string, so if you use field or term boosts
 # postreader.value_as("weight") will not match postreader.weight()
 
-
 def tokens(value, analyzer, kwargs):
     if isinstance(value, (tuple, list)):
         gen = entoken(value, **kwargs)
@@ -130,7 +130,7 @@ class Existence(Format):
     """Only indexes whether a given term occurred in a given document; it does
     not store frequencies or positions. This is useful for fields that should
     be searchable but not scorable, such as file path.
-    
+
     Supports: frequency, weight (always reports frequency = 1).
     """
 
@@ -144,10 +144,10 @@ class Existence(Format):
     def word_values(self, value, analyzer, **kwargs):
         fb = self.field_boost
         wordset = set(t.text for t in tokens(value, analyzer, kwargs))
-        return ((w, 1, fb, '') for w in wordset)
+        return ((w, 1, fb, emptybytes) for w in wordset)
 
     def encode(self, value):
-        return ''
+        return emptybytes
 
     def decode_frequency(self, valuestring):
         return 1
@@ -155,10 +155,13 @@ class Existence(Format):
     def decode_weight(self, valuestring):
         return self.field_boost
 
+    def combine(self, vs):
+        return emptybytes
+
 
 class Frequency(Format):
     """Stores frequency information for each posting.
-    
+
     Supports: frequency, weight.
     """
 
@@ -178,22 +181,19 @@ class Frequency(Format):
 
     def word_values(self, value, analyzer, **kwargs):
         fb = self.field_boost
+        length = 0
         freqs = defaultdict(int)
         weights = defaultdict(float)
 
         kwargs["boosts"] = True
         for t in tokens(value, analyzer, kwargs):
+            length += 1
             freqs[t.text] += 1
             weights[t.text] += t.boost
 
-        encode = self.encode
-        return ((w, freq, weights[w] * fb, encode(freq))
-                for w, freq in iteritems(freqs))
-
-    def encode(self, freq):
-        # frequency needs to be an int
-        freq = int(freq)
-        return pack_uint(freq)
+        wvs = ((w, freq, weights[w] * fb, pack_uint(freq)) for w, freq
+               in iteritems(freqs))
+        return wvs
 
     def decode_frequency(self, valuestring):
         return unpack_uint(valuestring)[0]
@@ -202,11 +202,14 @@ class Frequency(Format):
         freq = unpack_uint(valuestring)[0]
         return freq * self.field_boost
 
+    def combine(self, vs):
+        return pack_uint(sum(self.decode_value(v) for v in vs))
+
 
 class Positions(Format):
-    """A vector that stores position information in each posting, to allow
-    phrase searching and "near" queries.
-    
+    """Stores position information in each posting, to allow phrase searching
+    and "near" queries.
+
     Supports: frequency, weight, positions, position_boosts (always reports
     position boost = 1.0).
     """
@@ -221,20 +224,22 @@ class Positions(Format):
             poses[t.text].append(t.pos)
             weights[t.text] += t.boost
 
-        encode = self.encode
-        return ((w, len(poslist), weights[w] * fb, encode(poslist))
-                for w, poslist in iteritems(poses))
+        for w, poslist in iteritems(poses):
+            value = self.encode(poslist)
+            yield (w, len(poslist), weights[w] * fb, value)
 
-    def encode(self, positions):
-        codes = []
+    def encode(self, poslist):
+        deltas = []
         base = 0
-        for pos in positions:
-            codes.append(pos - base)
+        for pos in poslist:
+            deltas.append(pos - base)
             base = pos
-        return pack_uint(len(codes)) + dumps(codes, -1)[2:-1]
+        return pack_uint(len(deltas)) + dumps(deltas, -1)
 
     def decode_positions(self, valuestring):
-        codes = loads(valuestring[_INT_SIZE:] + b("."))
+        if not valuestring.endswith(b(".")):
+            valuestring += b(".")
+        codes = loads(valuestring[_INT_SIZE:])
         position = 0
         positions = []
         for code in codes:
@@ -251,11 +256,17 @@ class Positions(Format):
     def decode_position_boosts(self, valuestring):
         return [(pos, 1) for pos in self.decode_positions(valuestring)]
 
+    def combine(self, vs):
+        s = set()
+        for v in vs:
+            s.update(self.decode_positions(v))
+        return self.encode(sorted(s))
+
 
 class Characters(Positions):
     """Stores token position and character start and end information for each
     posting.
-    
+
     Supports: frequency, weight, positions, position_boosts (always reports
     position boost = 1.0), characters.
     """
@@ -272,24 +283,25 @@ class Characters(Positions):
             seen[t.text].append((t.pos, t.startchar, t.endchar))
             weights[t.text] += t.boost
 
-        encode = self.encode
-        return ((w, len(ls), weights[w] * fb, encode(ls))
-                for w, ls in iteritems(seen))
+        for w, poslist in iteritems(seen):
+            value = self.encode(poslist)
+            yield (w, len(poslist), weights[w] * fb, value)
 
-    def encode(self, posns_chars):
-        # posns_chars = [(pos, startchar, endchar), ...]
-        codes = []
+    def encode(self, poslist):
+        deltas = []
         posbase = 0
         charbase = 0
-        for pos, startchar, endchar in posns_chars:
-            codes.append((pos - posbase, startchar - charbase,
-                          endchar - startchar))
+        for pos, startchar, endchar in poslist:
+            deltas.append((pos - posbase, startchar - charbase,
+                           endchar - startchar))
             posbase = pos
             charbase = endchar
-        return pack_uint(len(posns_chars)) + dumps(codes, -1)[2:-1]
+        return pack_uint(len(deltas)) + dumps(deltas, -1)
 
     def decode_characters(self, valuestring):
-        codes = loads(valuestring[_INT_SIZE:] + b("."))
+        if not valuestring.endswith(b(".")):
+            valuestring += b(".")
+        codes = loads(valuestring[_INT_SIZE:])
         position = 0
         endchar = 0
         posns_chars = []
@@ -301,7 +313,9 @@ class Characters(Positions):
         return posns_chars
 
     def decode_positions(self, valuestring):
-        codes = loads(valuestring[_INT_SIZE:] + b("."))
+        if not valuestring.endswith(b(".")):
+            valuestring += b(".")
+        codes = loads(valuestring[_INT_SIZE:])
         position = 0
         posns = []
         for code in codes:
@@ -309,17 +323,29 @@ class Characters(Positions):
             posns.append(position)
         return posns
 
+    def combine(self, vs):
+        s = {}
+        for v in vs:
+            for pos, sc, ec in self.decode_characters(v):
+                if pos in s:
+                    old_sc, old_ec = pos[s]
+                    s[pos] = (min(sc, old_sc), max(ec, old_ec))
+                else:
+                    s[pos] = (sc, ec)
+        poses = [(pos, s[pos][0], s[pos][1]) for pos in sorted(s.keys())]
+        return self.encode(poses)
+
 
 class PositionBoosts(Positions):
     """A format that stores positions and per-position boost information
     in each posting.
-    
+
     Supports: frequency, weight, positions, position_boosts.
     """
 
     def word_values(self, value, analyzer, **kwargs):
         fb = self.field_boost
-        seen = defaultdict(iter)
+        seen = defaultdict(list)
 
         kwargs["positions"] = True
         kwargs["boosts"] = True
@@ -328,25 +354,25 @@ class PositionBoosts(Positions):
             boost = t.boost
             seen[t.text].append((pos, boost))
 
-        encode = self.encode
-        return ((w, len(poses), sum(p[1] for p in poses) * fb, encode(poses))
-                for w, poses in iteritems(seen))
+        for w, poses in iteritems(seen):
+            value = self.encode(poses)
+            yield (w, len(poses), sum(p[1] for p in poses) * fb, value)
 
-    def encode(self, posns_boosts):
-        # posns_boosts = [(pos, boost), ...]
+    def encode(self, poses):
         codes = []
         base = 0
         summedboost = 0
-        for pos, boost in posns_boosts:
+        for pos, boost in poses:
             summedboost += boost
             codes.append((pos - base, boost))
             base = pos
-
-        return (pack_uint(len(posns_boosts)) + pack_float(summedboost)
-                + dumps(codes, -1)[2:-1])
+        return (pack_uint(len(poses)) + pack_float(summedboost)
+                + dumps(codes, -1))
 
     def decode_position_boosts(self, valuestring):
-        codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE:] + b("."))
+        if not valuestring.endswith(b(".")):
+            valuestring += b(".")
+        codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE:])
         position = 0
         posns_boosts = []
         for code in codes:
@@ -355,7 +381,9 @@ class PositionBoosts(Positions):
         return posns_boosts
 
     def decode_positions(self, valuestring):
-        codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE:] + b("."))
+        if not valuestring.endswith(b(".")):
+            valuestring += b(".")
+        codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE:])
         position = 0
         posns = []
         for code in codes:
@@ -367,18 +395,24 @@ class PositionBoosts(Positions):
         summedboost = unpack_float(v[_INT_SIZE:_INT_SIZE + _FLOAT_SIZE])[0]
         return summedboost * self.field_boost
 
+    def combine(self, vs):
+        s = defaultdict(float)
+        for v in vs:
+            for pos, boost in self.decode_position_boosts(v):
+                s[pos] += boost
+        return self.encode(sorted(s.items()))
+
 
 class CharacterBoosts(Characters):
     """A format that stores positions, character start and end, and
     per-position boost information in each posting.
-    
+
     Supports: frequency, weight, positions, position_boosts, characters,
     character_boosts.
     """
 
     def word_values(self, value, analyzer, **kwargs):
-        fb = self.field_boost
-        seen = defaultdict(iter)
+        seen = defaultdict(list)
 
         kwargs["positions"] = True
         kwargs["chars"] = True
@@ -386,28 +420,31 @@ class CharacterBoosts(Characters):
         for t in tokens(value, analyzer, kwargs):
             seen[t.text].append((t.pos, t.startchar, t.endchar, t.boost))
 
-        encode = self.encode
-        return ((w, len(poses), sum(p[3] for p in poses) * fb, encode(poses))
-                for w, poses in iteritems(seen))
+        for w, poses in iteritems(seen):
+            value, summedboost = self.encode(poses)
+            yield (w, len(poses), summedboost, value)
 
-    def encode(self, posns_chars_boosts):
+    def encode(self, poses):
+        fb = self.field_boost
         # posns_chars_boosts = [(pos, startchar, endchar, boost), ...]
         codes = []
         posbase = 0
         charbase = 0
         summedboost = 0
-        for pos, startchar, endchar, boost in posns_chars_boosts:
+        for pos, startchar, endchar, boost in poses:
             codes.append((pos - posbase, startchar - charbase,
                           endchar - startchar, boost))
             posbase = pos
             charbase = endchar
             summedboost += boost
 
-        return (pack_uint(len(posns_chars_boosts)) + pack_float(summedboost)
-                + dumps(codes, -1)[2:-1])
+        return ((pack_uint(len(poses)) + pack_float(summedboost * fb)
+                 + dumps(codes, -1)), summedboost)
 
     def decode_character_boosts(self, valuestring):
-        codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE:] + b("."))
+        if not valuestring.endswith(b(".")):
+            valuestring += b(".")
+        codes = loads(valuestring[_INT_SIZE + _FLOAT_SIZE:])
         position = 0
         endchar = 0
         posn_char_boosts = []
@@ -429,18 +466,16 @@ class CharacterBoosts(Characters):
         return [(pos, boost) for pos, _, _, boost
                 in self.decode_character_boosts(valuestring)]
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def combine(self, vs):
+        s = {}
+        for v in vs:
+            for pos, sc, ec, boost in self.decode_character_boosts(v):
+                if pos in s:
+                    old_sc, old_ec, old_boost = pos[s]
+                    s[pos] = (min(sc, old_sc), max(ec, old_ec),
+                              old_boost + boost)
+                else:
+                    s[pos] = (sc, ec, boost)
+        poses = [(pos, sc, ec, boost) for pos, (sc, ec, boost)
+                 in sorted(s.items())]
+        return self.encode(poses)[0]  # encode() returns value, summedboost

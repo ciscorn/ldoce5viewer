@@ -8,7 +8,7 @@ class of Sun's `Minion search engine <https://minion.dev.java.net/>`_.
 
 import re
 
-from ..compat import xrange, iteritems
+from whoosh.compat import xrange, iteritems
 # Rule exceptions
 
 exceptions = [
@@ -899,7 +899,7 @@ def variations(word):
     """Given an English word, returns a collection of morphological variations
     on the word by algorithmically adding and removing suffixes. The variation
     list may contain non-words (e.g. render -> renderment).
-    
+
     >>> variations("pull")
     set(['pull', 'pullings', 'pullnesses', 'pullful', 'pullment', 'puller', ... ])
     """

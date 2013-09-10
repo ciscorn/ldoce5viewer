@@ -25,12 +25,12 @@
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of Matt Chaput.
 
-__version__ = (2, 3, 2)
+__version__ = (2, 5, 3)
 
 
 def versionstring(build=True, extra=True):
     """Returns the version number of Whoosh as a string.
-    
+
     :param build: Whether to include the build number in the string.
     :param extra: Whether to include alpha/beta/rc etc. tags. Only
         checked if build is True.

@@ -1,4 +1,4 @@
-"""Asynchlonous full-text search facility for headwords and phrases"""
+"""Asynchlonous full-text search facility for phrase search"""
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
@@ -7,8 +7,6 @@ import logging
 
 from PyQt4.QtCore import (
     QObject, QThread, QMutex, QWaitCondition, pyqtSignal)
-
-from ..whoosh.searching import Aborted
 
 _logger = logging.getLogger(__name__)
 
@@ -50,21 +48,22 @@ class _FTSearchThread(QThread):
 
                 try:
                     result = self._searcher.search(
+                        collector,
                         query_str1, query_str2,
-                        itemtypes, limit, highlight, collector)
-                except Aborted:
-                    pass
+                        itemtypes, highlight)
                 except:
-                    raise
                     self._mutex.lock()
                     self._result = None
                     self._mutex.unlock()
                     self.searchError.emit()
                 else:
-                    self._mutex.lock()
-                    self._result = (merge, result)
-                    self._mutex.unlock()
-                    self.searchFinished.emit()
+                    if collector.aborted:
+                        pass
+                    else:
+                        self._mutex.lock()
+                        self._result = (merge, result)
+                        self._mutex.unlock()
+                        self.searchFinished.emit()
 
                 self._mutex.lock()
                 self._collector = None

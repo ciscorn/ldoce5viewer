@@ -176,11 +176,9 @@ ADV_HEADER = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" type="text/css" href="static:///styles/search.css">
-<script src="static:///scripts/jquery.js"
-        type="application/javascript"></script>
-<script src="static:///scripts/search.js"
-        type="application/javascript"></script>'
+<link rel="stylesheet" href="static:///styles/search.css">
+<script src="static:///scripts/jquery.js"></script>
+<script src="static:///scripts/search.js"></script>
 </head>
 <body>"""
 
@@ -287,10 +285,11 @@ def search_and_render(url, fulltext_hp, fulltext_de):
     if mode in MODE_DICT:
         spec = MODE_DICT[mode]
         searcher = fulltext_hp if (spec['searcher'] == 'hp') else fulltext_de
+        collector = searcher.make_collector(spec['limit'])
         res = searcher.search(
+            collector,
             query_str1=phrase, query_str2=filters,
             itemtypes=spec['itemtypes'],
-            limit=spec['limit'],
             highlight=spec['highlight'])
         r.append(_render_header(spec['title'], mode, phrase, filters))
         r.append(spec['renderer'](res, mode))
