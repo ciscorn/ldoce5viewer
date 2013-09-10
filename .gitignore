@@ -1,0 +1,7 @@
+build/
+buildexe.bat
+exedist/
+innosetup.iss
+run.bat
+msvcx90/
+wininst/
