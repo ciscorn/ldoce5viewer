@@ -3,9 +3,9 @@ LDOCE5 Viewer
 
 The LDOCE5 Viewer is an alternative dictionary viewer for the Longman Dictionary of Contemporary English 5th Edition (LDOCE 5).
 
-It runs on Linux and Microsoft Windows.
-
 Website: http://hakidame.net/ldoce5viewer/
+
+It runs on Linux and Microsoft Windows.
 
 This software is free and open source software licensed under the terms of GPLv3.
 
@@ -13,27 +13,25 @@ This software is free and open source software licensed under the terms of GPLv3
 Prerequisites
 -------------
 
+* Longman Dictionary of Contemporary English 5th Edition (DVD-ROM)
+
 * Python 2.7 or 2.6 (not 3.x)
 
 * PyQt
 
-    - `python-qt4` (Ubuntu/Mint/Debian)
-    - `python2-pyqt` (Arch Linux)
+    - `python-qt4` (Ubuntu/Mint/Debian), `python2-pyqt` (Arch Linux)
 
 * lxml
 
-    - `python-lxml` (Ubuntu/Mint/Debian)
-    - `python2-lxml` (Arch Linux)
+    - `python-lxml` (Ubuntu/Mint/Debian), `python2-lxml` (Arch Linux)
 
 * [On Linux] Python bindings for Gstreamer
 
-    - `python-gst` (Ubuntu/Mint/Debian)
-    - `gstreamer0.10-python` (Arch Linux)
+    - `python-gst` (Ubuntu/Mint/Debian), `gstreamer0.10-python` (Arch Linux)
 
 * [On Linux] Gstreamer plugins for MP3 audio playback
 
-    - `gst-plugins-good` and `gst-plugins-ugly` (Ubuntu/Mint/Debian)
-    - `gstreamer-plugins-good` and `gstreamer-plugins-ugly` (Arch Linux)
+    - `gst-plugins-good` & `gst-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer-plugins-good` & `gstreamer-plugins-ugly` (Arch Linux)
 
 
 Installation
@@ -44,6 +42,7 @@ Installation
 1. Enter the following commands in the terminal:
 
 ```bash
+$ make
 $ sudo python2.7 ./setup.py install --optimize
 $ sudo cp ./ldoce5viewer.desktop /usr/share/applications/
 $ sudo cp ./ldoce5viewer/qtgui/resources/ldoce5viewer.svg /usr/share/pixmaps/
