@@ -144,8 +144,14 @@ span.spokensect {
     font-size: large;
 }
 .example {
-    margin: 0.1em 0 0.1em 1.0em;
+    margin: 0.1em 0 0.1em 0;
     color: #333;
+}
+.gramexa {
+    margin: 0.1em 0 0.1em 0;
+}
+.gramexa .example {
+    margin-left: 1em;
 }
 .crossref a {
     color: #730;
