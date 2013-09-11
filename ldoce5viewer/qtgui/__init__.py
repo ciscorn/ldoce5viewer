@@ -1,6 +1,6 @@
 '''Entry point for the application'''
 
-from __future__ import absolute_import
+from __future__ import unicode_literals, absolute_import, print_function
 
 _SINGLEAPP_KEY = 'ed437af1-0388-4e13-90e9-486bdc88c77a'
 
@@ -36,7 +36,8 @@ try:
     from . import ui
     from . import resources
 except ImportError:
-    raise RuntimeError("need to run '$ make' in order for the program to work")
+    print("need to run '$ make' in order for the program to work")
+    exit()
 
 
 def _setup_py2exe(config):

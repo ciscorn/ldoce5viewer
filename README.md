@@ -15,7 +15,7 @@ Prerequisites
 
 * Longman Dictionary of Contemporary English 5th Edition (DVD-ROM)
 
-* Python 2.7 or 2.6 (not 3.x)
+* Python 2.7 or 2.6 (or 3.x)
 
 * PyQt
 
@@ -47,7 +47,7 @@ Installation
 
 ```bash
 $ make
-$ sudo python2.7 ./setup.py install --optimize
+$ sudo python ./setup.py install --optimize
 $ sudo cp ./ldoce5viewer.desktop /usr/share/applications/
 $ sudo cp ./ldoce5viewer/qtgui/resources/ldoce5viewer.svg /usr/share/pixmaps/
 $ [ -x /usr/bin/update-desktop-database ] && sudo update-desktop-database -q

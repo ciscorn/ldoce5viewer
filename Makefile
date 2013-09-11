@@ -1,5 +1,5 @@
 PKG := ldoce5viewer
-PYTHON := python2
+PYTHON := python
 
 runqt: qtui qtresource
 	$(PYTHON) ./ldoce5viewer.py
