@@ -25,6 +25,10 @@ Prerequisites
 
     - `python-lxml` (Ubuntu/Mint/Debian), `python2-lxml` (Arch Linux)
 
+* Whoosh 2.x
+
+    - `python-whoosh` (Ubuntu/Mint/Debian), `python2-whoosh` in AUR (Arch Linux)
+
 * [On Linux] Python bindings for Gstreamer
 
     - `python-gst` (Ubuntu/Mint/Debian), `gstreamer0.10-python` (Arch Linux)

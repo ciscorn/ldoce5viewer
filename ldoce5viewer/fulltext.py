@@ -10,14 +10,14 @@ import os.path
 from operator import itemgetter
 import fnmatch
 
-from .whoosh import index as wh_index
-from .whoosh.fields import Schema, STORED, IDLIST, ID, TEXT
-from .whoosh.analysis import StandardAnalyzer, Filter
-from .whoosh.query import Variations, Term, Or, And
-from .whoosh.qparser import QueryParser, \
+from whoosh import index as wh_index
+from whoosh.fields import Schema, STORED, IDLIST, ID, TEXT
+from whoosh.analysis import StandardAnalyzer, Filter
+from whoosh.query import Variations, Term, Or, And
+from whoosh.qparser import QueryParser, \
     RangePlugin, BoostPlugin, WildcardPlugin, OperatorsPlugin
-from .whoosh.highlight import WholeFragmenter, HtmlFormatter
-from .whoosh.collectors import WrappingCollector, \
+from whoosh.highlight import WholeFragmenter, HtmlFormatter
+from whoosh.collectors import WrappingCollector, \
         UnlimitedCollector, TopCollector
 
 from .utils.cdb import CDBReader, CDBMaker, CDBError
