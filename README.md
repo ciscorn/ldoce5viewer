@@ -19,15 +19,15 @@ Prerequisites
 
 * PyQt
 
-    - `python-qt4` (Ubuntu/Mint/Debian), `python2-pyqt` (Arch Linux)
+    - `python-qt4` (Ubuntu/Mint/Debian), `python-pyqt` (Arch Linux)
 
 * lxml
 
-    - `python-lxml` (Ubuntu/Mint/Debian), `python2-lxml` (Arch Linux)
+    - `python-lxml` (Ubuntu/Mint/Debian), `python-lxml` (Arch Linux)
 
 * Whoosh 2.x
 
-    - `python-whoosh` (Ubuntu/Mint/Debian), `python2-whoosh` in AUR (Arch Linux)
+    - `python-whoosh` (Ubuntu/Mint/Debian), `python-whoosh` in AUR (Arch Linux)
 
 * [On Linux] Python bindings for Gstreamer
 
