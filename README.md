@@ -46,11 +46,7 @@ Installation
 1. Enter the following commands in the terminal:
 
 ```bash
-$ make
-$ sudo python ./setup.py install --optimize
-$ sudo cp ./ldoce5viewer.desktop /usr/share/applications/
-$ sudo cp ./ldoce5viewer/qtgui/resources/ldoce5viewer.svg /usr/share/pixmaps/
-$ [ -x /usr/bin/update-desktop-database ] && sudo update-desktop-database -q
+$ make install
 ```
 
 2. Copy the 'ldoce5.data' directory from the LDOCE5 DVD-ROM to an arbitrary location in your HDD or SSD.
