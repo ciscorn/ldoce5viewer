@@ -1,7 +1,4 @@
-'''Full-text searcher for headwords/phrases/examples/definitions
-
-powered by the Whoosh FTS library
-'''
+'''Full-text searcher for headwords/phrases/examples/definitions'''
 
 from __future__ import absolute_import
 
