@@ -1,4 +1,4 @@
-'''Contents transformer
+'''Content transformer
 
 This module generates HTML data from LDOCE5's XML documents.
 '''

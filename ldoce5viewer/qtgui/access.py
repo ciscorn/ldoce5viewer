@@ -1,4 +1,4 @@
-'''This module adds a local URI scheme handler for QtWebKit'''
+'''application-specific URI scheme handler for QtWebKit'''
 
 from __future__ import absolute_import
 from __future__ import print_function
