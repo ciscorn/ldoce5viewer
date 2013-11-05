@@ -20,6 +20,13 @@ except ImportError:
     gobject = None
 
 
+# Cocoa via PyObjC
+try:
+    import AppKit
+except:
+    AppKit = None
+
+
 # WinMCI
 if sys.platform == 'win32':
     try:
@@ -148,6 +155,30 @@ class WinMCIBackend(Backend):
                 pass
 
 
+class AppKitBackend(Backend):
+    def __init__(self, parent, temp_dir):
+        self._sound = None
+
+    def stop(self):
+        if self._sound:
+            self._sound.stop()
+
+    def play(self, data):
+        if self._sound:
+            self._sound.stop()
+
+        with NamedTemporaryFile(mode='w+b', prefix='',
+                suffix='.tmp.mp3', delete=False) as f:
+            f.write(data)
+
+        self._sound = AppKit.NSSound.alloc()
+        self._sound.initWithContentsOfFile_byReference_(f.name, True)
+        self._sound.play()
+
+    def close(self):
+        self.stop()
+
+
 class PhononBackend(Backend):
     def __init__(self, parent, temp_dir):
         self._player = Phonon.createPlayer(Phonon.NoCategory)
@@ -190,6 +221,8 @@ class PhononBackend(Backend):
 
 def create_soundplayer(parent, temp_dir):
     backends = []
+    if AppKit:
+        backends.append(AppKitBackend)
     if mp3play:
         backends.append(WinMCIBackend)
     if gst:
