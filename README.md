@@ -55,3 +55,19 @@ $ make install
 
 4. The application will ask you the location where you put 'ldoce5.data'.
 
+###Mac OS X
+
+(for advanced users)
+
+1. Install MacPorts
+
+2. Install the following ports:
+
+    - python27 (or python3x)
+    - py27-pyqt4
+    - py27-lxml
+    - py27-whoosh
+    - py27-pyobjc-cocoa
+
+3. Run the LDOCE5 Viewer
+
