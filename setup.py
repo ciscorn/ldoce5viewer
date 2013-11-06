@@ -32,6 +32,7 @@ except ImportError:
     pass
 else:
     extra_options.update(dict(
+        name='LDOCE5 Viewer',
         windows = [{
             'script': 'ldoce5viewer.py',
             'icon_resources': [(1, 'ldoce5viewer/resources/ldoce5viewer.ico')],
@@ -51,11 +52,58 @@ else:
         ))
 
 
+#--------
+# py2app
+#--------
+try:
+    import py2app
+except ImportError:
+    pass
+else:
+    extra_options.update(dict(
+        name='LDOCE5 Viewer',
+        app=['ldoce5viewer.py'],
+        options={'py2app': {
+            'iconfile': './ldoce5viewer/qtgui/resources/ldoce5viewer.icns',
+            'argv_emulation': False,
+            'optimize': 0,
+            'includes': ['sip', 'lxml._elementpath'],
+            'packages': [],
+            'excludes': [
+                'email', 'sqlite3',
+                'PyQt4.QtCLucene',
+                'PyQt4.QtHtml',
+                'PyQt4.QtHelp',
+                'PyQt4.QtTest',
+                'PyQt4.QtOpenGL',
+                'PyQt4.QtScript',
+                'PyQt4.QtScriptTools',
+                'PyQt4.QtSql',
+                'PyQt4.QtDeclarative',
+                'PyQt4.QtMultimedia',
+                'PyQt4.QtDesigner',
+                'PyQt4.QtXml',
+                'PyQt4.QtXmlPatterns',
+            ],
+            #'qt_plugins': [
+            #    'imageformats/libqjpeg.dylib',
+            #]
+        }},
+        data_files=[
+            ('qt_plugins/imageformats', ['/opt/local/share/qt4/plugins/imageformats/libqjpeg.dylib']),
+            ('', ['ldoce5viewer/static']),
+        ],
+    ))
+
+
 #------------
 # setup(...)
 #------------
+
+if 'name' not in extra_options:
+    extra_options['name'] = 'ldoce5viewer'
+
 setup(
-    name = 'ldoce5viewer',
     version = __version__,
     description = 'LDOCE5 Viewer',
     url = 'http://hakidame.net/ldoce5viewer/',

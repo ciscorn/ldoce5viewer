@@ -1,7 +1,9 @@
 *.pyc
+dist/
 build/
-buildexe.bat
+*egg-info/
 exedist/
+buildexe.bat
 innosetup.iss
 run.bat
 msvcx90/
