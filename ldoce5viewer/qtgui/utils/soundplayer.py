@@ -160,12 +160,7 @@ class AppKitBackend(Backend):
         if self._sound:
             self._sound.stop()
 
-        with NamedTemporaryFile(mode='w+b', prefix='',
-                suffix='.tmp.mp3', delete=False) as f:
-            f.write(data)
-
-        self._sound = AppKit.NSSound.alloc()
-        self._sound.initWithContentsOfFile_byReference_(f.name, True)
+        self._sound = AppKit.NSSound.alloc().initWithData_(data)
         self._sound.play()
 
     def close(self):
