@@ -31,11 +31,11 @@ Prerequisites
 
 * [On Linux] Python bindings for Gstreamer
 
-    - `python-gst` (Ubuntu/Mint/Debian), `gstreamer0.10-python` (Arch Linux)
+    - `python-gst0.10` (Ubuntu/Mint/Debian), `gstreamer0.10-python` (Arch Linux)
 
 * [On Linux] Gstreamer plugins for MP3 audio playback
 
-    - `gst-plugins-good` & `gst-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer-plugins-good` & `gstreamer-plugins-ugly` (Arch Linux)
+    - `gstreader0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer-plugins-good` & `gstreamer-plugins-ugly` (Arch Linux)
 
 
 Installation
