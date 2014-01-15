@@ -13,6 +13,13 @@ except ImportError:
     pass
 import webbrowser
 
+try:
+    import objc
+    import Cocoa
+    import Foundation
+except ImportError:
+    objc = None
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
@@ -73,7 +80,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        #self._okToClose = False
+        self._okToClose = False
         #systray = QSystemTrayIcon(self)
         #systray.setIcon(QIcon(":/icons/icon.png"))
         #systray.show()
@@ -93,7 +100,6 @@ class MainWindow(QMainWindow):
 
         # Lazy-loaded objects
         self._lazy = {}
-
 
         # Setup
         self._setup_ui()
@@ -138,15 +144,27 @@ class MainWindow(QMainWindow):
         # Show
         self.show()
 
+        # Click on the dock icon (OS X)
+        if objc:
+            def applicationShouldHandleReopen_hasVisibleWindows_(s, a, f):
+                self.show()
+
+            objc.classAddMethods(
+                Cocoa.NSApplication.sharedApplication().delegate().class__(),
+                [applicationShouldHandleReopen_hasVisibleWindows_])
+
 
     def close(self):
-        #self._okToClose = True
+        self._okToClose = True
         super(MainWindow, self).close()
 
 
     def closeEvent(self, event):
-            lazy = self._lazy
-        #if self._okToClose:
+        if not objc:
+            self._okToClose = True
+
+        lazy = self._lazy
+        if self._okToClose:
             if _LAZY_ADVSEARCH_WINDOW in lazy:
                 lazy[_LAZY_ADVSEARCH_WINDOW].close()
             self._save_to_configfile()
@@ -154,9 +172,9 @@ class MainWindow(QMainWindow):
             if _LAZY_SOUNDPLAYER in lazy:
                 lazy[_LAZY_SOUNDPLAYER].close()
             super(MainWindow, self).closeEvent(event)
-        #else:
-        #    self.hide()
-        #    event.ignore()
+        else:
+            self.hide()
+            event.ignore()
 
 
     def resizeEvent(self, event):
