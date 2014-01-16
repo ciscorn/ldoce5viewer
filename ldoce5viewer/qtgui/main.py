@@ -712,6 +712,12 @@ class MainWindow(QMainWindow):
         get_config()['monitorClipboard'] = \
                 self._ui.actionMonitorClipboard.isChecked()
 
+    def _onPaste(self):
+        clipboard = QApplication.clipboard()
+        text = clipboard.text(QClipboard.Clipboard)
+        self._ui.lineEditSearch.setText(text)
+        self._instantSearch(pending=True, delay=False)
+
     def _onClipboardChanged(self, mode):
         if self.isActiveWindow():
             return
@@ -996,8 +1002,6 @@ class MainWindow(QMainWindow):
             _set_icon(ui.actionAbout, 'help-about')
             _set_icon(ui.actionPrint, 'document-print')
             _set_icon(ui.actionPrintPreview, 'document-print-preview')
-            _set_icon(ui.actionNavForward, 'go-next', '24')
-            _set_icon(ui.actionNavBack, 'go-previous', '24')
             _set_icon(wp.action(QWebPage.Forward), 'go-next', '24')
             _set_icon(wp.action(QWebPage.Back), 'go-previous', '24')
             _set_icon(wp.action(QWebPage.Reload), 'reload')
@@ -1150,6 +1154,11 @@ class MainWindow(QMainWindow):
         ui.toolButtonFindPrev.setDefaultAction(ui.actionFindPrev)
         ui.toolButtonCloseFindbar.setDefaultAction(ui.actionFindClose)
         ui.toolButtonCloseInspector.setDefaultAction(ui.actionCloseInspector)
+
+        actionPaste = QAction(self)
+        actionPaste.triggered.connect(self._onPaste)
+        actionPaste.setShortcut(QKeySequence('Ctrl+V'))
+        self.addAction(actionPaste)
 
         # Shorcut keys
         ui.actionQuit.setShortcuts(QKeySequence.Quit)
