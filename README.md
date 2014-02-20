@@ -17,7 +17,7 @@ This software is free and open source software licensed under the terms of GPLv3
 
 * PyQt
 
-    - `python-qt4` (Ubuntu/Mint/Debian), `python-pyqt5` (Arch Linux)
+    - `python-qt4` (Ubuntu/Mint/Debian), `python-pyqt4` (Arch Linux)
 
 * lxml
 
@@ -29,11 +29,11 @@ This software is free and open source software licensed under the terms of GPLv3
 
 * [On Linux] Python bindings for Gstreamer
 
-    - `python-gst0.10` (Ubuntu/Mint/Debian), `gst-python` (Arch Linux)
+    - `python-gst0.10` (Ubuntu/Mint/Debian), `gstreamer0.10-python` (Arch Linux)
 
 * [On Linux] Gstreamer plugins for MP3 audio playback
 
-    - `gstreader0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gst-plugins-good` & `gst-plugins-ugly` (Arch Linux)
+    - `gstreader0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer0.10-good-plugins` & `gstreamer0.10-ugly-plugins` (Arch Linux)
 
 
 ##Installation
