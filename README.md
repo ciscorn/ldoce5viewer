@@ -19,7 +19,7 @@ Prerequisites
 
 * PyQt
 
-    - `python-qt4` (Ubuntu/Mint/Debian), `python-pyqt` (Arch Linux)
+    - `python-qt4` (Ubuntu/Mint/Debian), `python-pyqt5` (Arch Linux)
 
 * lxml
 
@@ -31,11 +31,11 @@ Prerequisites
 
 * [On Linux] Python bindings for Gstreamer
 
-    - `python-gst0.10` (Ubuntu/Mint/Debian), `gstreamer0.10-python` (Arch Linux)
+    - `python-gst0.10` (Ubuntu/Mint/Debian), `gst-python` (Arch Linux)
 
 * [On Linux] Gstreamer plugins for MP3 audio playback
 
-    - `gstreader0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer-plugins-good` & `gstreamer-plugins-ugly` (Arch Linux)
+    - `gstreader0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gst-plugins-good` & `gst-plugins-ugly` (Arch Linux)
 
 
 Installation
@@ -43,10 +43,17 @@ Installation
 
 ###Linux
 
+####Packages
+
+For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/ldoce5viewer/) and [ldoce5viewer-git](https://aur.archlinux.org/packages/ldoce5viewer-git/) exist on AUR.
+
+####Manually
+
 1. Enter the following commands in the terminal:
 
 ```bash
-$ make install
+$ make build
+$ sudo make install
 ```
 
 2. Copy the 'ldoce5.data' directory from the LDOCE5 DVD-ROM to an arbitrary location in your HDD or SSD.
