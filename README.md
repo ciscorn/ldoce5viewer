@@ -1,5 +1,4 @@
-LDOCE5 Viewer
-=============
+#LDOCE5 Viewer
 
 The LDOCE5 Viewer is an alternative dictionary viewer for the Longman Dictionary of Contemporary English 5th Edition (LDOCE 5).
 
@@ -10,8 +9,7 @@ It runs on Linux and Microsoft Windows.
 This software is free and open source software licensed under the terms of GPLv3.
 
 
-Prerequisites
--------------
+##Prerequisites
 
 * Longman Dictionary of Contemporary English 5th Edition (DVD-ROM)
 
@@ -38,8 +36,7 @@ Prerequisites
     - `gstreader0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gst-plugins-good` & `gst-plugins-ugly` (Arch Linux)
 
 
-Installation
-------------
+##Installation
 
 ###Linux
 
@@ -51,10 +48,10 @@ For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/l
 
 1. Enter the following commands in the terminal:
 
-```bash
-$ make build
-$ sudo make install
-```
+    ```bash
+    $ make build
+    $ sudo make install
+    ```
 
 2. Copy the 'ldoce5.data' directory from the LDOCE5 DVD-ROM to an arbitrary location in your HDD or SSD.
 
@@ -66,15 +63,17 @@ $ sudo make install
 
 (for advanced users)
 
-1. Install MacPorts
-
-2. Install the following ports:
-
-    - python27 (or python3x)
-    - py27-pyqt4
-    - py27-lxml
-    - py27-whoosh
-    - py27-pyobjc-cocoa
-
-3. Run the LDOCE5 Viewer
+<ol>
+  <li><p>Install MacPorts</p></li>
+  <li><p>Install the following ports:</p>
+    <ul>
+      <li>python27 (or python3x)</li>
+      <li>py27-pyqt4</li>
+      <li>py27-lxml</li>
+      <li>py27-whoosh</li>
+      <li>py27-pyobjc-cocoa</li>
+    </ul>
+  </li>
+  <li><p>Run the LDOCE5 Viewer</p></li>
+</ol>
 
