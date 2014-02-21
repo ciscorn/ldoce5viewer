@@ -4,7 +4,7 @@ The LDOCE5 Viewer is an alternative dictionary viewer for the Longman Dictionary
 
 Website: http://hakidame.net/ldoce5viewer/
 
-It runs on Linux and Microsoft Windows.
+It runs on Linux, Mac OS X and Microsoft Windows.
 
 This software is free and open source software licensed under the terms of GPLv3.
 
