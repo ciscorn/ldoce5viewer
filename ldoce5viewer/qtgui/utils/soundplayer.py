@@ -37,6 +37,13 @@ else:
     mp3play = None
 
 
+# Qt-Phonon
+try:
+    from PyQt4.phonon import Phonon
+except ImportError:
+    Phonon = None
+
+
 class Backend(object):
     __metaclass__ = abc.ABCMeta
     def __init__(self, parent, temp_dir):
@@ -148,6 +155,46 @@ class WinMCIBackend(Backend):
                 pass
 
 
+class PhononBackend(Backend):
+    def __init__(self, parent, temp_dir):
+        self._player = Phonon.createPlayer(Phonon.NoCategory)
+        self._player.finished.connect(self._onFinished)
+        self._alive = set()
+
+    def _onFinished(self):
+        self._clean_tmp()
+
+    def _play(self):
+        source = Phonon.MediaSource(self._path)
+        self._player.setCurrentSource(source)
+        self._player.play()
+
+    def play(self, data):
+        self._player.stop()
+        self._clean_tmp()
+        with NamedTemporaryFile(mode='w+b', prefix='',
+                suffix='.tmp.mp3', delete=False) as f:
+            f.write(data)
+            self._path = f.name
+            self._alive.add(f.name)
+        QTimer.singleShot(0, self._play)
+
+    def _clean_tmp(self):
+        removed = []
+        for path in self._alive:
+            try:
+                os.unlnk(path)
+            except:
+                pass
+            else:
+                removed.append(path)
+        self._alive.difference_update(removed)
+
+    def close(self):
+        self._player.stop()
+        self._clean_tmp()
+
+
 class AppKitBackend(Backend):
     def __init__(self, parent, temp_dir):
         self._sound = None
@@ -173,6 +220,8 @@ def create_soundplayer(parent, temp_dir):
         backends.append(AppKitBackend)
     if mp3play:
         backends.append(WinMCIBackend)
+    if Phonon:
+        backends.append(PhononBackend)
     if gst:
         backends.append(GstreamerBackend)
     backends.append(NullBackend)
