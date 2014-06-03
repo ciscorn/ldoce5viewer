@@ -192,6 +192,7 @@ class WebView(QWebView):
         self._actionCopyPlain.setShortcut(QKeySequence.Copy)
         self.page().selectionChanged.connect(self.__onSelectionChanged)
         self.__onSelectionChanged()
+        self._actionDownloadAudio = QAction(u'Download mp3',  self)
 
     def _copyAsPlainText(self):
         text = self.selectedText().strip()
@@ -205,6 +206,14 @@ class WebView(QWebView):
     def actionCopyPlain(self):
         return self._actionCopyPlain
 
+    @property
+    def actionDownloadAudio(self):
+        return self._actionDownloadAudio
+
+    @property
+    def audioUrlToDownload(self):
+        return self._audioUrlToDownload
+
     def __onSelectionChanged(self):
         text = self.selectedText()
         self._actionCopyPlain.setEnabled(bool(text))
@@ -213,6 +222,14 @@ class WebView(QWebView):
         page = self.page()
         menu = page.createStandardContextMenu()
         actions = menu.actions()
+        
+        # inserts the "Download audio" action
+        frame = page.frameAt(event.pos())
+        hit_test_result = frame.hitTestContent(event.pos())
+        if hit_test_result.linkUrl().scheme() == 'audio':
+            self._audioUrlToDownload = hit_test_result.linkUrl()
+            menu.insertAction(actions[0] if actions else None,
+                    self.actionDownloadAudio)
 
         # inserts the "Search for ..." action
         text = page.selectedText().strip().lower()
