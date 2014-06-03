@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import subprocess
 from distutils.core import setup
 from ldoce5viewer import __version__
 
@@ -60,6 +61,8 @@ try:
 except ImportError:
     pass
 else:
+    qt_plugins_path = subprocess.check_output('qmake -query QT_INSTALL_PLUGINS', shell=True)
+    qt_plugins_path = qt_plugins_path[0:len(qt_plugins_path)-1] # remove "\n"
     extra_options.update(dict(
         name='LDOCE5 Viewer',
         app=['ldoce5viewer.py'],
@@ -90,7 +93,7 @@ else:
             #]
         }},
         data_files=[
-            ('qt_plugins/imageformats', ['/opt/local/share/qt4/plugins/imageformats/libqjpeg.dylib']),
+            ('qt_plugins/imageformats', [qt_plugins_path]),
             ('', ['ldoce5viewer/static']),
         ],
     ))

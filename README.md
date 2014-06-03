@@ -63,8 +63,17 @@ For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/l
 
 (for advanced users)
 
+*Homebrew*:
+```bash
+$ brew install pyqt
+$ pip install lxml pyobjc-core pyobjc-framework-Cocoa whoosh py2app
+$ # inside ldoce5viewer directory
+$ sudo DISTUTILS_DEBUG=1 python setup.py py2app
+$ open dist/LDOCE5\ Viewer.app/
+```
+
+Or if you are using *MacPorts*:
 <ol>
-  <li><p>Install MacPorts</p></li>
   <li><p>Install the following ports:</p>
     <ul>
       <li>python27 (or python3x)</li>
