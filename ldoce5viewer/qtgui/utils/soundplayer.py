@@ -9,16 +9,27 @@ from ...utils.compat import range
 
 _logger = logging.getLogger(__name__)
 
-
-# Gstreamer
+# Gstreamer 1.0
 try:
+    import gi
+    gi.require_version('Gst', '1.0')
+    from gi.repository import GObject, Gst
+    GObject.threads_init()
+    Gst.init(None)
+except (ImportError, ValueError):
+    Gst = None
+    GObject = None
+
+# Gstreamer 0.10
+try:
+    if Gst is not None:
+        raise ImportError()
     import gst
     import gobject
     gobject.threads_init()
 except ImportError:
     gst = None
     gobject = None
-
 
 # Cocoa via PyObjC
 try:
@@ -66,6 +77,54 @@ class NullBackend(Backend):
 
 
 class GstreamerBackend(Backend):
+    """Backend for Gstreamer 1.0"""
+
+    def __init__(self, parent, temp_dir):
+        self._player = None
+        self._data = None
+
+    def play(self, data):
+        if self._player:
+            self._player.set_state(Gst.State.NULL)
+
+        try:
+            self._player = Gst.parse_launch(
+                    'appsrc name=src ! decodebin ! autoaudiosink')
+        except:
+            _logger.error(
+                "Gstreamer's good-plugins package is needed to play sound")
+            return
+
+        self._player.set_state(Gst.State.NULL)
+        bus = self._player.get_bus()
+        bus.add_signal_watch()
+        bus.connect("message", self._on_message)
+
+        def need_data(appsrc, size):
+            if not self._data:
+                appsrc.emit('end-of-stream')
+                return
+            appsrc.emit('push-buffer', Gst.Buffer.new_wrapped(self._data[:size]))
+            self._data = self._data[size:]
+
+        self._data = data
+        self._player.get_by_name('src').connect('need-data', need_data)
+        self._player.set_state(Gst.State.PLAYING)
+
+    def _on_message(self, bus, message):
+        if message.type == Gst.MessageType.EOS:
+            self._player.set_state(Gst.State.NULL)
+            self._player = None
+
+    def close(self):
+        if self._player:
+            self._player.set_state(Gst.State.NULL)
+        self._player = None
+
+
+class GstreamerOldBackend(Backend):
+    """Backend for Gstreamer 0.10"""
+
     def __init__(self, parent, temp_dir):
         self._player = None
         self._data = None
@@ -222,8 +281,10 @@ def create_soundplayer(parent, temp_dir):
         backends.append(WinMCIBackend)
     if Phonon:
         backends.append(PhononBackend)
-    if gst:
+    if Gst:
         backends.append(GstreamerBackend)
+    if gst:
+        backends.append(GstreamerOldBackend)
     backends.append(NullBackend)
 
     return backends[0](parent, temp_dir)
