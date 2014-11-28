@@ -540,16 +540,28 @@ class MainWindow(QMainWindow):
     #----------
 
     def _playbackAudio(self, path):
+        self._getAudioData(path, lambda data: self._soundplayer.play(data))
+
+    def _getAudioData(self,  path,  callback):
         (archive, name) = path.lstrip('/').split('/', 1)
         if archive in ('us_hwd_pron', 'gb_hwd_pron', 'exa_pron', 'sfx', 'sound'):
             def finished():
                 if reply.error() == QNetworkReply.NoError:
-                    self._soundplayer.play(reply.readAll())
+                    callback(reply.readAll())
 
             url = QUrl('dict:///{0}/{1}'.format(archive, name))
             reply = self._networkAccessManager.get(QNetworkRequest(url))
             reply.finished.connect(finished)
 
+    def downloadSelectedAudio(self):
+        path = self._ui.webView.audioUrlToDownload.path()
+        def showSaveDialog(data):
+            filename = QFileDialog.getSaveFileName(self,  u'Save mp3',  '',  u'MP3 Files (*.mp3)')
+            if filename != '':
+                file = open(filename, "w")
+                file.write(data)
+                file.close()
+        self._getAudioData(path, showSaveDialog)
 
     def _onWebViewLinkClicked(self, url):
         scheme = url.scheme()
@@ -1126,6 +1138,7 @@ class MainWindow(QMainWindow):
         act_conn(ui.actionSearchDefinitions, self._onSearchDefinitions)
         act_conn(ui.actionAdvancedSearch, self._onAdvancedSearch)
         act_conn(wv.actionSearchText, self.searchSelectedText)
+        act_conn(wv.actionDownloadAudio, self.downloadSelectedAudio)
         act_conn(ui.actionZoomIn, partial(self.setZoom, 1, relative=True))
         act_conn(ui.actionZoomOut, partial(self.setZoom, -1, relative=True))
         act_conn(ui.actionNormalSize, partial(self.setZoom, 0))
