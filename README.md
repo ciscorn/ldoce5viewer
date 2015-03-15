@@ -33,7 +33,7 @@ This software is free and open source software licensed under the terms of GPLv3
 
 * [On Linux] Gstreamer plugins for MP3 audio playback
 
-    - `gstreader0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer0.10-good-plugins` & `gstreamer0.10-ugly-plugins` (Arch Linux)
+    - `gstreamer0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer0.10-good-plugins` & `gstreamer0.10-ugly-plugins` (Arch Linux)
 
 
 ##Installation
