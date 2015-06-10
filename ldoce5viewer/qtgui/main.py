@@ -997,6 +997,8 @@ class MainWindow(QMainWindow):
 
         self.setWindowIcon(QIcon(":/icons/icon.png"))
         _set_icon(ui.actionFindClose, 'window-close')
+        _set_icon(ui.actionNavForward, 'go-next', '24')
+        _set_icon(ui.actionNavBack, 'go-previous', '24')
         _set_icon(ui.actionFindNext, 'go-down')
         _set_icon(ui.actionFindPrev, 'go-up')
         _set_icon(ui.actionCloseInspector, 'window-close')
