@@ -15,9 +15,9 @@ This software is free and open source software licensed under the terms of GPLv3
 
 * Python 2.7 or 2.6 (or 3.x)
 
-* PyQt
+* Development tools for PyQt4
 
-    - `python-qt4` (Ubuntu/Mint/Debian), `python-pyqt4` (Arch Linux)
+    - `pyqt4-dev-tools` (Ubuntu/Mint/Debian), `pyqt4-dev-tools` (Arch Linux)
 
 * lxml
 
