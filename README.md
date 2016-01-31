@@ -17,24 +17,30 @@ This software is free and open source software licensed under the terms of GPLv3
 
 * Development tools for PyQt4
 
-    - `pyqt4-dev-tools` (Ubuntu/Mint/Debian), `pyqt4-dev-tools` (Arch Linux)
-
+    - `sudo apt-get install pyqt4-dev-tools` (Ubuntu/Mint/Debian), `pyqt4-dev-tools` (Arch Linux)
+    
 * lxml
 
-    - `python-lxml` (Ubuntu/Mint/Debian), `python-lxml` (Arch Linux)
+    - `sudo apt-get install python-lxml` (Ubuntu/Mint/Debian), `python-lxml` (Arch Linux)
 
-* Whoosh 2.x
+* Install pip to install python whoosh:
 
-    - `python-whoosh` (Ubuntu/Mint/Debian), `python-whoosh` in AUR (Arch Linux)
+    - `sudo apt-get -y install python-pip`
+    
+* Whoosh 2.5.7
+
+    - `sudo pip install whoosh==2.5.7` (Ubuntu/Mint/Debian), `python-whoosh` in AUR (Arch Linux)
 
 * [On Linux] Python bindings for Gstreamer
 
-    - `python-gst0.10` (Ubuntu/Mint/Debian), `gstreamer0.10-python` (Arch Linux)
+    - `sudo apt-get install python-gst0.10` (Ubuntu/Mint/Debian), `gstreamer0.10-python` (Arch Linux)
 
 * [On Linux] Gstreamer plugins for MP3 audio playback
 
     - `gstreamer0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer0.10-good-plugins` & `gstreamer0.10-ugly-plugins` (Arch Linux)
 
+* python-qt4-phonon to pronunce words and sentences correctly
+    - `sudo apt-get install python-qt4-phonon`
 
 ##Installation
 
