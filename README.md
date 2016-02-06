@@ -23,6 +23,10 @@ This software is free and open source software licensed under the terms of GPLv3
 
     - `python-lxml` (Ubuntu/Mint/Debian), `python-lxml` (Arch Linux)
 
+If you're using Ubuntu 15.x, you should install pip to install python whoosh 2.5.7:
+    - `python-pip`
+    - `pip install whoosh==2.5.7`
+
 * Whoosh 2.x
 
     - `python-whoosh` (Ubuntu/Mint/Debian), `python-whoosh` in AUR (Arch Linux)
@@ -35,6 +39,8 @@ This software is free and open source software licensed under the terms of GPLv3
 
     - `gstreamer0.10-plugins-good` & `gstreamer0.10-plugins-ugly` (Ubuntu/Mint/Debian), `gstreamer0.10-good-plugins` & `gstreamer0.10-ugly-plugins` (Arch Linux)
 
+If you're using Ubuntu 15.x, you should install python-qt4-phonon to pronunce words and sentences correctly:
+    - `python-qt4-phonon`
 
 ##Installation
 
