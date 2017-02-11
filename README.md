@@ -23,13 +23,15 @@ This software is free and open source software licensed under the terms of GPLv3
 
     - `python-lxml` (Ubuntu/Mint/Debian), `python-lxml` (Arch Linux)
 
-If you're using Ubuntu 15.x, you should install pip to install python whoosh 2.5.7:
-    - `python-pip`
-    - `pip install whoosh==2.5.7`
 
 * Whoosh 2.x
-
-    - `python-whoosh` (Ubuntu/Mint/Debian), `python-whoosh` in AUR (Arch Linux)
+    - `python-whoosh` (Ubuntu/Mint/Debian), `python-whoosh` in AUR (Arch Linux)  
+    
+    - If you are on Ubuntu 15+, the default python-whoosh to be installed is 2.7.0+, which may cause error with the application during index. Therefore,you have 2 options : 
+        + Use pip to install python whoosh 2.5.`python-pip` `pip install whoosh==2.5.7`  
+    
+        + Install .deb file from [here](http://packages.ubuntu.com/trusty/all/python-whoosh/download) to grab the old version (2.5.7) of python-whoosh.
+        
 
 * [On Linux] Python bindings for Gstreamer
 
