@@ -1,4 +1,4 @@
-#LDOCE5 Viewer
+# LDOCE5 Viewer
 
 The LDOCE5 Viewer is an alternative dictionary viewer for the Longman Dictionary of Contemporary English 5th Edition (LDOCE 5).
 
@@ -9,7 +9,7 @@ It runs on Linux, Mac OS X and Microsoft Windows.
 This software is free and open source software licensed under the terms of GPLv3.
 
 
-##Prerequisites
+## Prerequisites
 
 * Longman Dictionary of Contemporary English 5th Edition (DVD-ROM)
 
@@ -44,15 +44,15 @@ This software is free and open source software licensed under the terms of GPLv3
 If you're using Ubuntu 15.x, you should install python-qt4-phonon to pronunce words and sentences correctly:
     - `python-qt4-phonon`
 
-##Installation
+## Installation
 
-###Linux
+### Linux
 
-####Packages
+#### Packages
 
 For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/ldoce5viewer/) and [ldoce5viewer-git](https://aur.archlinux.org/packages/ldoce5viewer-git/) exist on AUR.
 
-####Manually
+#### Manually
 
 1. Enter the following commands in the terminal:
 
@@ -67,7 +67,7 @@ For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/l
 
 4. The application will ask you the location where you put 'ldoce5.data'.
 
-###Mac OS X
+### Mac OS X
 
 (for advanced users)
 
