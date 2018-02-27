@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2018 Damian Wrobel <dwrobel@ertelnet.rybnik.pl> -->
+<component type="desktop">
+  <id>ldoce5viewer.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>ldoce5viewer</name>
+  <summary>Viewer Application for the Longman Dictionary (LDOCE 5)</summary>
+  <description>
+    <p>
+      The ldoce5viewer is an alternative dictionary viewer for the
+      Longman Dictionary of Contemporary English 5th Edition (LDOCE 5).
+    </p>
+
+    <p>Some features:</p>
+      <ul>
+        <li>Comprehensive instant search</li>
+        <li>Pleasant to use</li>
+        <li>Clean and readable</li>
+        <li>Full sound playback</li>
+        <li>Access virtually all of the LDOCE content</li>
+        <li>Powerful advanced search</li>
+        <li>Search in definitions and example sentences</li>
+        <li>Clipboard monitoring</li>
+      </ul>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://forward-backward.co.jp/ldoce5viewer/static/images/sc/linux1.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://forward-backward.co.jp/ldoce5viewer/static/images/sc/activator.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://forward-backward.co.jp/ldoce5viewer/static/images/sc/advsearch.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://forward-backward.co.jp/ldoce5viewer/</url>
+  <update_contact>dwrobel_at_ertelnet.rybnik.pl</update_contact>
+</component>
