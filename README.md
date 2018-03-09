@@ -66,10 +66,16 @@ For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/l
 
 If you're using Ubuntu 15.x, you should install python-qt4-phonon to pronunce words and sentences correctly:
     - `python-qt4-phonon`
-    
-#### Install Manually From Source
 
+## Installation
 
+### Linux
+
+#### Packages
+
+For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/ldoce5viewer/) and [ldoce5viewer-git](https://aur.archlinux.org/packages/ldoce5viewer-git/) exist on AUR.
+
+#### Manually
 
 1. Enter the following commands in the terminal:
 
@@ -90,9 +96,7 @@ If you're using Ubuntu 15.x, you should install python-qt4-phonon to pronunce wo
 
 Download and run your .app file [here](https://forward-backward.co.jp/ldoce5viewer/download)
 
-
 #### Install manually From Source
-
 
 *Homebrew*:
 ```bash
