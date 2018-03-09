@@ -2,7 +2,7 @@
 
 import sys
 
-import Image, ImageFilter, ImageChops, ImageEnhance, ImageDraw
+from PIL import Image, ImageFilter, ImageChops, ImageEnhance, ImageDraw
 
 
 OFFSET_S = 4
@@ -29,7 +29,7 @@ def make_inset_shadow(alpha):
     m1 = alpha.copy()
     for i in xrange(6):
         m1 = m1.filter(ImageFilter.SMOOTH_MORE)
-    m1 = m1.offset(0, OFFSET_S)
+    m1 = ImageChops.offset(m1, 0, OFFSET_S)
     m1 = ImageChops.subtract(alpha, m1)
     m1b = ImageEnhance.Brightness(m1).enhance(0.35)
 
@@ -48,7 +48,7 @@ def make_highlight(alpha):
     m1 = alpha.copy()
     for i in xrange(2):
         m1 = m1.filter(ImageFilter.SMOOTH_MORE)
-    m1 = m1.offset(0, OFFSET_H)
+    m1 = ImageChops.offset(m1, 0, OFFSET_H)
     m1 = ImageChops.subtract(m1, alpha)
     m1b = ImageEnhance.Brightness(m1).enhance(0.35)
 
