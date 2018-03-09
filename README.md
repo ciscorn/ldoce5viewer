@@ -1,4 +1,6 @@
-#LDOCE5 Viewer
+# LDOCE5 Viewer
+
+![image](https://cloud.githubusercontent.com/assets/15828926/24585732/efb068a4-17bb-11e7-8294-7241f73d9ed8.png)
 
 The LDOCE5 Viewer is an alternative dictionary viewer for the Longman Dictionary of Contemporary English 5th Edition (LDOCE 5).
 
@@ -9,9 +11,30 @@ It runs on Linux, Mac OS X and Microsoft Windows.
 This software is free and open source software licensed under the terms of GPLv3.
 
 
-##Prerequisites
+## Prerequisites
 
 * Longman Dictionary of Contemporary English 5th Edition (DVD-ROM)
+* Python 2.7 or 2.6 (or 3.x)
+* Development tools for PyQt4
+* lxml
+* Whoosh 2.x
+
+
+## Installation
+
+### Windows 
+
+Simple download and execute the .exe file [here](https://forward-backward.co.jp/ldoce5viewer/download).
+
+### Linux
+
+If a package is yet to be available for your distro, you need to build it from source.
+
+#### Available Packages
+
+For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/ldoce5viewer/) and [ldoce5viewer-git](https://aur.archlinux.org/packages/ldoce5viewer-git/) exist on AUR.
+
+#### Prequisites for building from source  
 
 * Python 2.7 or 2.6 (or 3.x)
 
@@ -43,16 +66,10 @@ This software is free and open source software licensed under the terms of GPLv3
 
 If you're using Ubuntu 15.x, you should install python-qt4-phonon to pronunce words and sentences correctly:
     - `python-qt4-phonon`
+    
+#### Install Manually From Source
 
-##Installation
 
-###Linux
-
-####Packages
-
-For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/ldoce5viewer/) and [ldoce5viewer-git](https://aur.archlinux.org/packages/ldoce5viewer-git/) exist on AUR.
-
-####Manually
 
 1. Enter the following commands in the terminal:
 
@@ -67,9 +84,15 @@ For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/l
 
 4. The application will ask you the location where you put 'ldoce5.data'.
 
-###Mac OS X
+### Mac OS X
 
-(for advanced users)
+#### Available packages
+
+Download and run your .app file [here](https://forward-backward.co.jp/ldoce5viewer/download)
+
+
+#### Install manually From Source
+
 
 *Homebrew*:
 ```bash
@@ -81,16 +104,11 @@ $ open dist/LDOCE5\ Viewer.app/
 ```
 
 Or if you are using *MacPorts*:
-<ol>
-  <li><p>Install the following ports:</p>
-    <ul>
-      <li>python27 (or python3x)</li>
-      <li>py27-pyqt4</li>
-      <li>py27-lxml</li>
-      <li>py27-whoosh</li>
-      <li>py27-pyobjc-cocoa</li>
-    </ul>
-  </li>
-  <li><p>Run the LDOCE5 Viewer</p></li>
-</ol>
+- Install the following ports:
+    * python27 (or python3x)
+    * py27-pyqt4
+    * py27-lxml
+    * py27-whoosh
+    * py27-pyobjc-cocoa
+- Run the LDOCE5 Viewer
 
