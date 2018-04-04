@@ -34,6 +34,8 @@ If a package is yet to be available for your distro, you need to build it from s
 
 For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/ldoce5viewer/) and [ldoce5viewer-git](https://aur.archlinux.org/packages/ldoce5viewer-git/) exist on AUR.
 
+For Fedora Linux *(version >=27)*, [ldoce5viewer](https://admin.rpmfusion.org/pkgdb/package/free/ldoce5viewer/) is available from the [rpmfusion](https://rpmfusion.org/)-free repository.
+
 #### Prequisites for building from source  
 
 * Python 2.7 or 2.6 (or 3.x)
@@ -74,6 +76,20 @@ If you're using Ubuntu 15.x, you should install python-qt4-phonon to pronunce wo
 #### Packages
 
 For Arch Linux, two packages [ldoce5viewer](https://aur.archlinux.org/packages/ldoce5viewer/) and [ldoce5viewer-git](https://aur.archlinux.org/packages/ldoce5viewer-git/) exist on AUR.
+
+For Fedora Linux *(version >=27)*, execute the following commands from the terminal:
+
+1. Install [rpmfusion](https://rpmfusion.org/Configuration)-free repository *(assumes it is not already installed)*:
+    
+    ```bash
+    $ sudo dnf install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+    ```
+    
+2. Install `ldoce5viewer` package:
+    
+    ```bash
+    $ sudo dnf install ldoce5viewer
+    ```
 
 #### Manually
 
