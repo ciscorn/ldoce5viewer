@@ -793,8 +793,10 @@ class MainWindow(QMainWindow):
         config = get_config()
         if action == self._ui.actionPronUS:
             config['autoPronPlayback'] = 'US'
+            self._onTimerAutoPronTimeout()
         elif action == self._ui.actionPronGB:
             config['autoPronPlayback'] = 'GB'
+            self._onTimerAutoPronTimeout()
         else:
             config['autoPronPlayback'] = ''
 
