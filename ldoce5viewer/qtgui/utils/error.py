@@ -2,8 +2,8 @@
 
 from logging import StreamHandler
 
-from PyQt4.QtCore import QMutex, QObject, pyqtSignal
-from PyQt4.QtGui import QPlainTextEdit
+from PyQt5.QtCore import QMutex, QObject, pyqtSignal
+from PyQt5.QtWidgets import QPlainTextEdit
 
 
 class MyStreamHandler(StreamHandler):

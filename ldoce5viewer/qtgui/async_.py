@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import logging
 
-from PyQt4.QtCore import (
+from PyQt5.QtCore import (
     QObject, QThread, QMutex, QWaitCondition, pyqtSignal)
 
 _logger = logging.getLogger(__name__)

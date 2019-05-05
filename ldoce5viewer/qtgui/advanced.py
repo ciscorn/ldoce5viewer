@@ -5,9 +5,11 @@ from __future__ import unicode_literals
 
 from operator import itemgetter
 
-from PyQt4.QtCore import Qt, QUrl
-from PyQt4.QtGui import (
-    QAction, QDialog, QKeySequence, QIcon, QTreeWidgetItem,)
+from PyQt5.QtCore import Qt, QUrl, QUrlQuery
+from PyQt5.QtGui import (
+    QKeySequence, QIcon)
+from PyQt5.QtWidgets import (
+    QAction, QDialog, QTreeWidgetItem,)
 
 from ..ldoce5 import advtree
 from ..utils.compat import range
@@ -194,11 +196,13 @@ def _render_header(title, mode, phrase, filters):
 
     for (name, spec) in modes:
         href = QUrl('search:///')
+        urlquery = QUrlQuery()
         if phrase:
-            href.addQueryItem('phrase', phrase)
+            urlquery.addQueryItem('phrase', phrase)
         if filters:
-            href.addQueryItem('filters', filters)
-        href.addQueryItem('mode', name)
+            urlquery.addQueryItem('filters', filters)
+        urlquery.addQueryItem('mode', name)
+        href.setQuery(urlquery)
         if name != mode:
             r.append(
                 '<li><a href="{href}">{title}</a></li>\n'.format(
@@ -276,10 +280,10 @@ def _render_hwdphr(items, mode):
 
 
 def search_and_render(url, fulltext_hp, fulltext_de):
-    query = dict((k, v) for (k, v) in url.queryItems())
-    mode = query.get('mode', None)
-    phrase = query.get('phrase', None)
-    filters = query.get('filters', None)
+    query = QUrlQuery(url)
+    mode = query.queryItemValue('mode')
+    phrase = query.queryItemValue('phrase')
+    filters = query.queryItemValue('filters')
 
     r = []
     if mode in MODE_DICT:

@@ -1,10 +1,10 @@
 import sys
 import os
 import abc
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, mkdtemp
 import logging
 
-from PyQt4.QtCore import *
+from PyQt5.QtCore import *
 from ...utils.compat import range
 
 _logger = logging.getLogger(__name__)
@@ -50,9 +50,16 @@ else:
 
 # Qt-Phonon
 try:
-    from PyQt4.phonon import Phonon
+    from PyQt5.phonon import Phonon
 except ImportError:
     Phonon = None
+
+
+# Qt-Multimedia
+try:
+    import PyQt5.QtMultimedia as QtMultimedia
+except ImportError:
+    QtMultimedia = None
 
 
 class Backend(object):
@@ -254,6 +261,29 @@ class PhononBackend(Backend):
         self._clean_tmp()
 
 
+class QtMultimediaBackend(Backend):
+    def __init__(self, parent, temp_dir):
+        self._player = QtMultimedia.QMediaPlayer()
+        self._tmpdir = mkdtemp()
+
+    def _play(self):
+        url = QUrl.fromLocalFile(self._path)
+        content = QtMultimedia.QMediaContent(url)
+        self._player.setMedia(content)
+        self._player.play()
+
+    def play(self, data):
+        self._player.stop()
+        with NamedTemporaryFile(mode='w+b', prefix='',
+                suffix='.tmp.mp3', dir=self._tmpdir, delete=False) as f:
+            f.write(data)
+            self._path = f.name
+        QTimer.singleShot(0, self._play)
+
+    def close(self):
+        self._player.stop()
+
+
 class AppKitBackend(Backend):
     def __init__(self, parent, temp_dir):
         self._sound = None
@@ -281,6 +311,8 @@ def create_soundplayer(parent, temp_dir):
         backends.append(WinMCIBackend)
     if Phonon:
         backends.append(PhononBackend)
+    if QtMultimedia:
+        backends.append(QtMultimediaBackend)
     if Gst:
         backends.append(GstreamerBackend)
     if gst:

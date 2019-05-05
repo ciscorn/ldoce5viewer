@@ -8,9 +8,9 @@ import imp
 import os.path
 import traceback
 
-from PyQt4.QtCore import (
+from PyQt5.QtCore import (
     Qt, Q_ARG, QMetaObject, QIODevice, QTimer,)
-from PyQt4.QtNetwork import (
+from PyQt5.QtNetwork import (
     QNetworkAccessManager, QNetworkReply, QNetworkRequest,)
 
 from .. import __version__
