@@ -779,7 +779,7 @@ class MainWindow(QMainWindow):
         self._timerAutoPron.start(_INTERVAL_AUTO_PRON)
 
 
-    def _onTimerAutoPronTimeout(self):
+    def _onTimerAutoPronTimeout(self, manual = False):
         autoplayback = get_config().get('autoPronPlayback', None)
         if autoplayback:
             metaData = self._ui.webView.page().mainFrame().metaData()
@@ -787,17 +787,25 @@ class MainWindow(QMainWindow):
                 self._playbackAudio('/us_hwd_pron/' + metaData['us_pron'][0])
             elif autoplayback == 'GB' and ('gb_pron' in metaData):
                 self._playbackAudio('/gb_hwd_pron/' + metaData['gb_pron'][0])
+        elif manual:
+            metaData = self._ui.webView.page().mainFrame().metaData()
+            if 'us_pron' in metaData:
+                self._playbackAudio('/us_hwd_pron/' + metaData['us_pron'][0])
 
 
     def _onAutoPronChanged(self, action):
         config = get_config()
         if action == self._ui.actionPronUS:
             config['autoPronPlayback'] = 'US'
+            self._onTimerAutoPronTimeout()
         elif action == self._ui.actionPronGB:
             config['autoPronPlayback'] = 'GB'
+            self._onTimerAutoPronTimeout()
         else:
             config['autoPronPlayback'] = ''
 
+    def playPron(self):
+        self._onTimerAutoPronTimeout(True)
 
     #-----------
     # Find
@@ -1160,6 +1168,7 @@ class MainWindow(QMainWindow):
         ui.actionGroupAutoPron.addAction(ui.actionPronUS)
         ui.actionGroupAutoPron.setExclusive(True)
         ui.actionGroupAutoPron.triggered.connect(self._onAutoPronChanged)
+        act_conn(ui.actionPlayPron, self.playPron)
 
         self.addAction(ui.actionFocusLineEdit)
         self.addAction(wp.action(QWebPage.SelectAll))

@@ -451,6 +451,8 @@
     <addaction name="actionPronOff"/>
     <addaction name="actionPronGB"/>
     <addaction name="actionPronUS"/>
+    <addaction name="separator"/>
+    <addaction name="actionPlayPron"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -694,6 +696,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+N</string>
+   </property>
+  </action>
+  <action name="actionPlayPron">
+   <property name="text">
+    <string>Play Pronunciation</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionAdvancedSearch">
