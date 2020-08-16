@@ -17,7 +17,7 @@ import logging
 import codecs
 import os.path
 
-from PyQt4.QtGui import QIcon
+from PyQt5.QtGui import QIcon
 
 from .utils.singleapp import SingleApplication
 from .utils.error import StdErrWrapper, MyStreamHandler
@@ -25,7 +25,7 @@ from .config import get_config
 
 
 # set a dummy function if QLineEdit doesn't have setPlaceholderText
-from PyQt4.QtGui import QLineEdit
+from PyQt5.QtWidgets import QLineEdit
 if not hasattr(QLineEdit, 'setPlaceholderText'):
     def _dummySetPlaceholderText(self, *args, **kwargs):
         pass
@@ -107,7 +107,7 @@ def run(argv):
     # On Windows-ja
     if app.font().family() == u'MS UI Gothic':
         cand = (('Segoe UI', None), ('Meiryo UI', None), ('Tahoma', 8))
-        from PyQt4.QtGui import QFont
+        from PyQt5.QtGui import QFont
         for name, point in cand:
             ps = app.font().pointSize()
             if point is None:

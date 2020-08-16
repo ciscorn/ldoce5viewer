@@ -5,7 +5,7 @@
 
 import re
 
-from PyQt4.QtGui import QFont
+from PyQt5.QtGui import QFont
 
 
 _DEFAULT_FONT_NAMES = frozenset((b'sans-serif', b'serif', b'monospace'))

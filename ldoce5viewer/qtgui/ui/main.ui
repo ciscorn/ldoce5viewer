@@ -758,7 +758,7 @@
   <customwidget>
    <class>QWebInspector</class>
    <extends>QWidget</extends>
-   <header>PyQt4/QtWebKit</header>
+   <header>PyQt5/QtWebKitWidgets</header>
   </customwidget>
   <customwidget>
    <class>HtmlListWidget</class>

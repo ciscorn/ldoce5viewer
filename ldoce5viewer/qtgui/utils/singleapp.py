@@ -1,9 +1,9 @@
 '''This module prevent you from running two instances of the app'''
 
 
-from PyQt4.QtCore import pyqtSignal, QIODevice
-from PyQt4.QtGui import QApplication
-from PyQt4.QtNetwork import QLocalSocket, QLocalServer
+from PyQt5.QtCore import pyqtSignal, QIODevice
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtNetwork import QLocalSocket, QLocalServer
 
 
 class SingleApplication(QApplication):

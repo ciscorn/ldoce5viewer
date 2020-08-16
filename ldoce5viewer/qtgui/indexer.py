@@ -14,8 +14,9 @@ from cgi import escape
 from struct import Struct
 import traceback
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 import lxml.etree as et
 
 from .. import __version__

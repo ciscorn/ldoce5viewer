@@ -12,7 +12,7 @@ try:
 except ImportError:
     import pickle
 
-from PyQt4.QtCore import QReadWriteLock
+from PyQt5.QtCore import QReadWriteLock
 
 
 __config = None
