@@ -1,35 +1,27 @@
-'''Indexing thread and dialog window'''
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
+"""Indexing thread and dialog window"""
 
 import os
 import os.path
 import shutil
-try:
-    import cPickle as pickle
-except:
-    import pickle
-from cgi import escape
-from struct import Struct
-import traceback
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+import pickle
+import traceback
+from html import escape
+from struct import Struct
+
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+
 import lxml.etree as et
 
-from .. import __version__
-from .. import fulltext
-from .. import incremental
-from ..ldoce5 import filemap
-from ..ldoce5 import idmreader
+from .. import __version__, fulltext, incremental
+from ..ldoce5 import filemap, idmreader
 from ..ldoce5.extract import get_entry_items
-from ..utils.compat import range
-
-from .ui.indexer import Ui_Dialog
 from .config import get_config
+from .ui.indexer import Ui_Dialog
 
-_struct_I = Struct(b'<I')
+_struct_I = Struct(b"<I")
 _pack_I = _struct_I.pack
 _unpack_I = _struct_I.unpack
 
@@ -63,8 +55,8 @@ class IndexerDialog(QDialog):
         path = []
         try:
             import _winreg
-            k = _winreg.OpenKey(
-                _winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\NSIS_ldoce5")
+
+            k = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\NSIS_ldoce5")
             try:
                 (value, ty) = _winreg.QueryValueEx(k, "Install_Dir")
                 if ty == 1:
@@ -74,21 +66,28 @@ class IndexerDialog(QDialog):
         except:
             pass
 
-        if 'ProgramFiles' in os.environ:
-            path.append(os.path.join(os.environ['ProgramFiles'],
-                        'Longman', 'LDOCE5', 'ldoce5.data'))
+        if "ProgramFiles" in os.environ:
+            path.append(
+                os.path.join(
+                    os.environ["ProgramFiles"], "Longman", "LDOCE5", "ldoce5.data"
+                )
+            )
 
-        if 'ProgramFiles(x86)' in os.environ:
-            path.append(os.path.join(os.environ['ProgramFiles(x86)'],
-                        'Longman', 'LDOCE5', 'ldoce5.data'))
+        if "ProgramFiles(x86)" in os.environ:
+            path.append(
+                os.path.join(
+                    os.environ["ProgramFiles(x86)"], "Longman", "LDOCE5", "ldoce5.data"
+                )
+            )
         for p in path:
             if idmreader.is_ldoce5_dir(p):
                 self._ui.lineEditPath.setText(p)
                 return
 
         self._message('Cannot find the "ldoce5.data" folder automatically.')
-        self._message('Click the "Browse..." button to '
-                      'select the "ldoce5.data" folder.')
+        self._message(
+            'Click the "Browse..." button to ' 'select the "ldoce5.data" folder.'
+        )
 
     def _onSourcePathChanged(self, text):
         is_valid_dir = idmreader.is_ldoce5_dir(text)
@@ -97,21 +96,21 @@ class IndexerDialog(QDialog):
             self._ui.plainTextEdit.clear()
             self._message(
                 'The "ldoce5.data" folder is found.<br>'
-                'Click "Start Indexing" or "Cancel".')
+                'Click "Start Indexing" or "Cancel".'
+            )
             if self._autostart:
                 self._start_indexing()
         else:
             self._message("{0} is not the LDOCE5 archive.".format(text))
 
     def _onBrowseSource(self):
-        dirpath= QFileDialog.getExistingDirectory(
-            self, 'Select "ldoce5.data" Folder')
+        dirpath = QFileDialog.getExistingDirectory(self, 'Select "ldoce5.data" Folder')
         self._ui.lineEditPath.setText(dirpath)
 
     def _start_indexing(self):
         config = get_config()
-        config.pop('dataDir', None)
-        config.pop('versionIndexed', None)
+        config.pop("dataDir", None)
+        config.pop("versionIndexed", None)
         self._ui.buttonRun.setVisible(False)
         self._ui.lineEditPath.setEnabled(False)
         self._ui.buttonBrowseSource.setVisible(False)
@@ -143,12 +142,11 @@ class IndexerDialog(QDialog):
 
     def _threadSucceeded(self):
         config = get_config()
-        config['dataDir'] = self._srcdir
-        config['versionIndexed'] = __version__
+        config["dataDir"] = self._srcdir
+        config["versionIndexed"] = __version__
         config.save()
         self.setWindowTitle("Done")
-        QMessageBox.information(self,
-                "Done", "Index successfully created!")
+        QMessageBox.information(self, "Done", "Index successfully created!")
         self.accept()
 
     def _threadFailed(self):
@@ -166,12 +164,8 @@ class IndexerDialog(QDialog):
         self.reject()
 
 
-class AbortIndexing(Exception):
-    pass
-
-
 class IndexingThread(QThread):
-    message = pyqtSignal(type(''))
+    message = pyqtSignal(type(""))
 
     def __init__(self, parent, srcdir):
         QThread.__init__(self, parent)
@@ -190,20 +184,18 @@ class IndexingThread(QThread):
         self.message.emit(s)
 
     def _make_index(self):
-
         def scan_entries(scan_temp):
             # entries
             variations = {}
-            self._message('Scanning entry files...')
-            files = idmreader.list_files(self._srcdir, 'fs')
+            self._message("Scanning entry files...")
+            files = idmreader.list_files(self._srcdir, "fs")
             count = 0
-            with idmreader.ArchiveReader(self._srcdir, 'fs') as archive_reader:
+            with idmreader.ArchiveReader(self._srcdir, "fs") as archive_reader:
                 for (dirs, name, location) in files:
                     if self._abort:
                         raise AbortIndexing()
 
-                    (items, var) = get_entry_items(
-                            archive_reader.read(location))
+                    (items, var) = get_entry_items(archive_reader.read(location))
 
                     for k in var:
                         v = var[k]
@@ -213,181 +205,225 @@ class IndexingThread(QThread):
                             variations[k] = set()
                         variations[k].update(v)
 
-                    for (itemtype, label, path, content,
-                            sortkey, asfilter, prio) in items:
+                    for (
+                        itemtype,
+                        label,
+                        path,
+                        content,
+                        sortkey,
+                        asfilter,
+                        prio,
+                    ) in items:
 
                         count += 1
                         if count % 10000 == 0:
                             self._message("{0} items found".format(count))
 
-                        if itemtype == 'hm':
+                        if itemtype == "hm":
                             words = content.split()
                             for w in words:
-                                if '-' in w:
-                                    content += (' ' + w.replace('-', ''))
+                                if "-" in w:
+                                    content += " " + w.replace("-", "")
 
                         scan_temp.append(
-                                (itemtype, label, path, content, sortkey,
-                                    asfilter, prio))
+                            (itemtype, label, path, content, sortkey, asfilter, prio)
+                        )
 
             self._message("{0} items were found.".format(count))
 
             # word variation database
-            self._message('Making the word variation database...')
+            self._message("Making the word variation database...")
             with open(get_config().variations_path, "w+b") as f:
                 var_writer = fulltext.VariationsWriter(f)
                 for k in variations:
                     v = variations[k]
                     var_writer.add(k, v)
 
-                self._message('Finalizing...')
+                self._message("Finalizing...")
                 var_writer.finalize()
-                self._message('Done.')
+                self._message("Done.")
 
         def scan_activator(scan_temp):
-            self._message('Scanning language-activator files...')
+            self._message("Scanning language-activator files...")
 
             # phrase to keywords
-            act_label_path = os.path.join(self._srcdir,
-                    "activator.skn", "alpha_index.skn", "LABEL.tda")
+            act_label_path = os.path.join(
+                self._srcdir, "activator.skn", "alpha_index.skn", "LABEL.tda"
+            )
             with open(act_label_path, "rb") as f:
                 labels = f.read().split(b"\0")[:-1]
 
             # activator sections
             sections = {}
-            files = idmreader.list_files(self._srcdir, 'activator_section')
-            with idmreader.ArchiveReader(
-                    self._srcdir, 'activator_section') as cr:
+            files = idmreader.list_files(self._srcdir, "activator_section")
+            with idmreader.ArchiveReader(self._srcdir, "activator_section") as cr:
                 for (dirs, name, location) in files:
                     if self._abort:
                         raise AbortIndexing()
 
                     data = cr.read(location)
                     root = et.fromstring(data)
-                    sid = root.get('id')
+                    sid = root.get("id")
                     sections[sid] = []
                     for exp in root.iterfind("Exponent"):
-                        eid = exp.get('id')
-                        plain = ''.join(exp.find("EXP").itertext()).strip()
+                        eid = exp.get("id")
+                        plain = "".join(exp.find("EXP").itertext()).strip()
                         sections[sid].append((eid, plain))
 
             # activator concepts
-            files = idmreader.list_files(self._srcdir, 'activator_concept')
+            files = idmreader.list_files(self._srcdir, "activator_concept")
             exponents = []
-            with idmreader.ArchiveReader(
-                    self._srcdir, 'activator_concept') as cr:
+            with idmreader.ArchiveReader(self._srcdir, "activator_concept") as cr:
                 for (dirs, name, location) in files:
                     if self._abort:
                         raise AbortIndexing()
 
                     root = et.fromstring(cr.read(location))
-                    cid = root.get('id')
+                    cid = root.get("id")
                     hwd = root.find("HWD").text
-                    first_sid = root.find("Section").get('id')
-                    for h in hwd.split('/'):
+                    first_sid = root.find("Section").get("id")
+                    for h in hwd.split("/"):
                         scan_temp.append(
-                            ('ac', '<a><c>{0}</c></a>'.format(escape(h)),
-                            '/activator/{0}/{1}'.format(cid, first_sid),
-                            h, h, '', 50))
+                            (
+                                "ac",
+                                "<a><c>{0}</c></a>".format(escape(h)),
+                                "/activator/{0}/{1}".format(cid, first_sid),
+                                h,
+                                h,
+                                "",
+                                50,
+                            )
+                        )
 
                     for sno, section in enumerate(root.iterfind("Section")):
-                        sid = section.get('id')
+                        sid = section.get("id")
                         for (eid, plain) in sections[sid]:
-                            exponents.append(
-                                    (plain, hwd, cid, sid, eid, sno))
+                            exponents.append((plain, hwd, cid, sid, eid, sno))
 
             for (plain, hwd, cid, sid, eid, sno) in exponents:
                 if self._abort:
                     raise AbortIndexing()
 
                 keywords = set([plain])
-                #if plain in phrase_keys:
+                # if plain in phrase_keys:
                 #    keywords.update(phrase_keys[plain])
                 for keyword in keywords:
-                    scan_temp.append((
-                        'ae',
-                        '<a><e>{0}</e> (<c>{1}<s>{2}</s></c>)</a>'.format(
-                            escape(keyword), escape(hwd), sno+1),
-                        '/activator/{0}/{1}#{2}'.format(cid, sid, eid),
-                        keyword, keyword, '', 51))
+                    scan_temp.append(
+                        (
+                            "ae",
+                            "<a><e>{0}</e> (<c>{1}<s>{2}</s></c>)</a>".format(
+                                escape(keyword), escape(hwd), sno + 1
+                            ),
+                            "/activator/{0}/{1}#{2}".format(cid, sid, eid),
+                            keyword,
+                            keyword,
+                            "",
+                            51,
+                        )
+                    )
 
-            self._message('Done.')
+            self._message("Done.")
 
         def make_incr(scan_temp):
-            self._message('Building the incremental search index...')
-            incr_maker = incremental.Maker(get_config().incremental_path,
-                    get_config().incremental_path + get_config().tmp_suffix)
+            self._message("Building the incremental search index...")
+            incr_maker = incremental.Maker(
+                get_config().incremental_path,
+                get_config().incremental_path + get_config().tmp_suffix,
+            )
 
             i = 0
-            for (itemtype, label, path, content,
-                    sortkey, asfilter, prio) in scan_temp.iter_items():
+            for (
+                itemtype,
+                label,
+                path,
+                content,
+                sortkey,
+                asfilter,
+                prio,
+            ) in scan_temp.iter_items():
                 if self._abort:
                     raise AbortIndexing()
                 ty = itemtype[0]
-                if ty == 'p' or ty == 'h' or ty == 'a':
+                if ty == "p" or ty == "h" or ty == "a":
                     i += 1
                     if i % 10000 == 0:
-                        self._message('{0} items added'.format(i))
+                        self._message("{0} items added".format(i))
                     incr_maker.add_item(content, itemtype, label, path, prio)
 
-            self._message('{0} items were added.'.format(i))
-            self._message('Finalizing...')
+            self._message("{0} items were added.".format(i))
+            self._message("Finalizing...")
             incr_maker.finalize()
 
-            self._message('Done.')
+            self._message("Done.")
 
         def make_full_hp(scan_temp):
-            self._message('Building the full text search index '
-                    'for headwords and phrases...')
-            fulltext_hwdphr_maker = fulltext.Maker(
-                    get_config().fulltext_hwdphr_path)
+            self._message(
+                "Building the full text search index " "for headwords and phrases..."
+            )
+            fulltext_hwdphr_maker = fulltext.Maker(get_config().fulltext_hwdphr_path)
 
             i = 0
-            for (itemtype, label, path, content,
-                    sortkey, asfilter, prio) in scan_temp.iter_items():
+            for (
+                itemtype,
+                label,
+                path,
+                content,
+                sortkey,
+                asfilter,
+                prio,
+            ) in scan_temp.iter_items():
                 if self._abort:
                     raise AbortIndexing()
                 ty = itemtype[0]
-                if ty == 'p' or ty == 'h' or ty == 'a':
+                if ty == "p" or ty == "h" or ty == "a":
                     i += 1
                     if i % 10000 == 0:
-                        self._message('{0} items added'.format(i))
-                    fulltext_hwdphr_maker.add_item(itemtype, content, asfilter,
-                            label, path, prio, sortkey)
+                        self._message("{0} items added".format(i))
+                    fulltext_hwdphr_maker.add_item(
+                        itemtype, content, asfilter, label, path, prio, sortkey
+                    )
 
-            self._message('{0} items were added.'.format(i))
-            self._message('Finalizing...')
-            self._message('Please wait a while...')
+            self._message("{0} items were added.".format(i))
+            self._message("Finalizing...")
+            self._message("Please wait a while...")
             fulltext_hwdphr_maker.commit()
             fulltext_hwdphr_maker.close()
 
-            self._message('Done.')
+            self._message("Done.")
 
         def make_full_de(scan_temp):
-            self._message('Building the full text search index '
-                    'for examples and definitions...')
-            fulltext_defexa_maker = fulltext.Maker(
-                    get_config().fulltext_defexa_path)
+            self._message(
+                "Building the full text search index " "for examples and definitions..."
+            )
+            fulltext_defexa_maker = fulltext.Maker(get_config().fulltext_defexa_path)
 
             i = 0
-            for (itemtype, label, path, content,
-                    sortkey, asfilter, prio) in scan_temp.iter_items():
+            for (
+                itemtype,
+                label,
+                path,
+                content,
+                sortkey,
+                asfilter,
+                prio,
+            ) in scan_temp.iter_items():
                 if self._abort:
                     raise AbortIndexing()
                 ty = itemtype[0]
-                if ty == 'd' or ty == 'e':
+                if ty == "d" or ty == "e":
                     i += 1
                     if i % 10000 == 0:
-                        self._message('{0} items added'.format(i))
-                    fulltext_defexa_maker.add_item(itemtype, content, asfilter,
-                            label, path, prio, sortkey)
+                        self._message("{0} items added".format(i))
+                    fulltext_defexa_maker.add_item(
+                        itemtype, content, asfilter, label, path, prio, sortkey
+                    )
 
-            self._message('{0} items were added.'.format(i))
-            self._message('Finalizing...')
-            self._message('Please wait a while...')
+            self._message("{0} items were added.".format(i))
+            self._message("Finalizing...")
+            self._message("Please wait a while...")
             fulltext_defexa_maker.commit()
             fulltext_defexa_maker.close()
-            self._message('Done.')
+            self._message("Done.")
 
         scan_temp = ScanTempFile(get_config().scan_tmp_path)
         try:
@@ -436,7 +472,7 @@ class IndexingThread(QThread):
             self._remove_all()
             self._make_filemap()
             self._make_index()
-            self._message('Completed!')
+            self._message("Completed!")
         except AbortIndexing:
             self._message("Aborted!")
             err = True
@@ -444,7 +480,9 @@ class IndexingThread(QThread):
             self._message(
                 "<div style='color: red'>"
                 "Error occurred<br>{0}</div>".format(
-                    '<br>'.join(traceback.format_exc().splitlines())))
+                    "<br>".join(traceback.format_exc().splitlines())
+                )
+            )
             err = True
 
         if err:
@@ -484,4 +522,3 @@ class ScanTempFile(object):
             os.remove(self._path)
         except EnvironmentError:
             pass
-

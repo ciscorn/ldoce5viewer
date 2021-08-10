@@ -1,32 +1,25 @@
-'''Incremental searcher for headwords and phrases'''
+"""Incremental searcher for headwords and phrases"""
 
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import division
-
-import os
 import mmap
-from struct import Struct
+import os
 from operator import itemgetter
+from struct import Struct
 
-from .utils.text import normalize_index_key, enc_utf8, dec_utf8
-from .utils.compat import range
-
+from .utils.text import dec_utf8, enc_utf8, normalize_index_key
 
 _MAGIC = 0x28061691
 _DB_VERSION = 1
 
 
-_struct_I = Struct(b'<I')
+_struct_I = Struct(b"<I")
 _pack_I = _struct_I.pack
 _unpack_I = _struct_I.unpack
 del _struct_I
-_struct_HBHHB = Struct(b'<HBHHB')
+_struct_HBHHB = Struct(b"<HBHHB")
 _pack_HBHHB = _struct_HBHHB.pack
 _unpack_HBHHB = _struct_HBHHB.unpack
 del _struct_HBHHB
-_unpack_H = Struct(b'<H').unpack
+_unpack_H = Struct(b"<H").unpack
 
 
 class IndexError(Exception):
@@ -37,27 +30,27 @@ class Searcher(object):
     def __init__(self, index_path):
         self._mm = None
         try:
-            with open(index_path, 'rb') as f:
+            with open(index_path, "rb") as f:
                 self._mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
         except ValueError:
-            raise IndexError('broken')
+            raise IndexError("broken")
 
         read = self._mm.read
         file_size = len(self._mm)
 
         if file_size < 4 * 4:
-            raise IndexError('too small')
+            raise IndexError("too small")
         if _MAGIC != _unpack_I(read(4))[0]:
-            raise IndexError('broken')
+            raise IndexError("broken")
         if _DB_VERSION != _unpack_I(read(4))[0]:
-            raise IndexError('cannot use this version of index')
+            raise IndexError("cannot use this version of index")
 
         (self._num,) = _unpack_I(read(4))
         (self._first,) = _unpack_I(read(4))
         if self._num == 0 or self._first == 0:
-            raise IndexError('does not contain any data')
+            raise IndexError("does not contain any data")
         if file_size != self._first + self._num * 4:
-            raise IndexError('broken')
+            raise IndexError("broken")
 
     def __enter__(self):
         return self
@@ -90,10 +83,10 @@ class Searcher(object):
             while a != b:
                 c = (a + b) // 2
                 p = first + 4 * c
-                (p,) = _unpack_I(mm[p:p+4])
-                (lenp,) = _unpack_H(mm[p:p+2])
+                (p,) = _unpack_I(mm[p : p + 4])
+                (lenp,) = _unpack_H(mm[p : p + 2])
                 p += 8
-                plain = dec_utf8(mm[p:p+lenp])
+                plain = dec_utf8(mm[p : p + lenp])
                 if key > plain:
                     a = c + 1
                 else:
@@ -105,10 +98,10 @@ class Searcher(object):
             while a != b:
                 c = (a + b) // 2
                 p = first + 4 * c
-                (p,) = _unpack_I(mm[p:p+4])
-                (lenp,) = _unpack_H(mm[p:p+2])
+                (p,) = _unpack_I(mm[p : p + 4])
+                (lenp,) = _unpack_H(mm[p : p + 2])
                 p += 8
-                plain = dec_utf8(mm[p:p+lenp])
+                plain = dec_utf8(mm[p : p + lenp])
                 if key < plain and not plain.startswith(key):
                     b = c
                 else:
@@ -124,15 +117,14 @@ class Searcher(object):
         (seek, read) = (mm.seek, mm.read)
         ret = [None] * min(limit, end - start)
         p = first + 4 * start
-        seek(_unpack_I(mm[p:p+4])[0])
+        seek(_unpack_I(mm[p : p + 4])[0])
         for i in range(len(ret)):
-            (lenplain, lentypecode, lenlabel, lenpath, prio) = \
-                _unpack_HBHHB(read(8))
+            (lenplain, lentypecode, lenlabel, lenpath, prio) = _unpack_HBHHB(read(8))
             data = read(lenplain + lentypecode + lenlabel + lenpath)
             plain = dec_utf8(data[:lenplain])
             x1 = lenplain + lentypecode
             x2 = x1 + lenlabel
-            #typecode = data[lenplain:x1]
+            # typecode = data[lenplain:x1]
             label = dec_utf8(data[x1:x2])
             path = dec_utf8(data[-lenpath:])
             ret[i] = (label, path, plain, prio, None)
@@ -152,12 +144,18 @@ class Maker(object):
         plain_e = enc_utf8(plain_n)
         typecode_e = enc_utf8(typecode)
         label_e = enc_utf8(label)
-        path_e = path.encode('ascii')
-        data = b''.join(
-            (_pack_HBHHB(
-                len(plain_e), len(typecode_e),
-                len(label_e), len(path_e), prio
-            ), plain_e, typecode_e, label_e, path_e))
+        path_e = path.encode("ascii")
+        data = b"".join(
+            (
+                _pack_HBHHB(
+                    len(plain_e), len(typecode_e), len(label_e), len(path_e), prio
+                ),
+                plain_e,
+                typecode_e,
+                label_e,
+                path_e,
+            )
+        )
         tmpf = self._tmpf
         pos = tmpf.tell()
         tmpf.write(data)
@@ -192,13 +190,13 @@ class Maker(object):
 
     def _generate(self, num, first):
         try:
-            with open(self._tmp_path, 'rb') as f:
+            with open(self._tmp_path, "rb") as f:
                 mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
         except ValueError:
-            raise IndexError('index is broken')
+            raise IndexError("index is broken")
 
         if len(mm) != first + num * 4:
-            raise IndexError('index is broken')
+            raise IndexError("index is broken")
 
         dstf = open(self._path, "wb")
 
@@ -213,12 +211,11 @@ class Maker(object):
         newx = 4 * 4
         for i in range(num):
             new_xlist.append(newx)
-            x = _unpack_I(mm[p:p+4])[0]
-            sizes = mm[x:(x + 8)]
-            (lenplain, lentypecode, lenlabel, lenpath, prio) = \
-                _unpack_HBHHB(sizes)
+            x = _unpack_I(mm[p : p + 4])[0]
+            sizes = mm[x : (x + 8)]
+            (lenplain, lentypecode, lenlabel, lenpath, prio) = _unpack_HBHHB(sizes)
             datasize = lenplain + lentypecode + lenlabel + lenpath
-            data = mm[x:(x + 8 + datasize)]
+            data = mm[x : (x + 8 + datasize)]
             write(data)
             p += 4
             newx += 8 + datasize

@@ -1,26 +1,29 @@
 """A pure-python implementation of cdb"""
 
+from mmap import ACCESS_READ, mmap
 from struct import Struct
-from mmap import mmap, ACCESS_READ
 
-_struct_2L = Struct(b'<LL')
+_struct_2L = Struct(b"<LL")
 _read_2L = _struct_2L.unpack
 _write_2L = _struct_2L.pack
-_read_512L = Struct(b'<512L').unpack
+_read_512L = Struct(b"<512L").unpack
 
 try:
     import __builtin__
+
     range = __builtin__.xrange
 except ImportError:
     pass
 
 import itertools
-zip = getattr(itertools, 'izip', zip)
+
+zip = getattr(itertools, "izip", zip)
+
 
 def hashfunc(s):
     h = 5381
     for c in bytearray(s):
-        h = h * 33 & 0xffffffff ^ c
+        h = h * 33 & 0xFFFFFFFF ^ c
     return h
 
 
@@ -29,14 +32,14 @@ class CDBError(Exception):
 
 
 class CDBReader(object):
-    __slots__ = ('_mmap', '_maintable')
+    __slots__ = ("_mmap", "_maintable")
 
     def __init__(self, path):
         self._mmap = None
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             mm = self._mmap = mmap(f.fileno(), 0, access=ACCESS_READ)
         if len(mm) < 2048:
-            raise CDBError('file too small')
+            raise CDBError("file too small")
         mt = _read_512L(mm.read(2048))
         self._maintable = tuple(zip(mt[0::2], mt[1::2]))
 
@@ -63,16 +66,16 @@ class CDBReader(object):
         (hashed_high, subidx) = divmod(hashed, 256)
         (pos_subtable, num_entries) = self._maintable[subidx]
         if pos_subtable <= 2048:
-            raise CDBError('broken file')
+            raise CDBError("broken file")
 
         def iter_subtable():
             ini = hashed_high % num_entries
             pa = pos_subtable + 8 * ini
             pb = pos_subtable + 8 * num_entries
             for p in range(pa, pb, 8):
-                yield _read_2L(mm[p:p+8])
+                yield _read_2L(mm[p : p + 8])
             for p in range(pos_subtable, pa, 8):
-                yield _read_2L(mm[p:p+8])
+                yield _read_2L(mm[p : p + 8])
 
         if num_entries:
             for (h, p) in iter_subtable():
@@ -84,7 +87,7 @@ class CDBReader(object):
                     (klen, vlen) = _read_2L(mm[p:pk])
                     pv = pk + klen
                     if key == mm[pk:pv]:
-                        return mm[pv:(pv+vlen)]
+                        return mm[pv : (pv + vlen)]
         return default
 
     def __getitem__(self, key):
@@ -94,7 +97,7 @@ class CDBReader(object):
         return r
 
     def __contains__(self, key):
-        return (self.get(key) is not None)
+        return self.get(key) is not None
 
     def iteritems(self):
         mm = self._mmap
@@ -138,14 +141,14 @@ class CDBMaker(object):
             hashed_high, subidx = divmod(hashed, 256)
             ini = hashed_high % sub_num[subidx]
             for pos in range(ini * 8, sub_num[subidx] * 8, 8):
-                h, p = _read_2L(bytes(buf[pos: pos+8]))
+                h, p = _read_2L(bytes(buf[pos : pos + 8]))
                 if p == 0:
-                    buf[pos:pos+8] = _write_2L(hashed, pointer)
+                    buf[pos : pos + 8] = _write_2L(hashed, pointer)
                     return
             for pos in range(0, ini * 8, 8):
-                h, p = _read_2L(bytes(buf[pos: pos+8]))
+                h, p = _read_2L(bytes(buf[pos : pos + 8]))
                 if p == 0:
-                    buf[pos:pos+8] = _write_2L(hashed, pointer)
+                    buf[pos : pos + 8] = _write_2L(hashed, pointer)
                     return
 
         sub_pos = []

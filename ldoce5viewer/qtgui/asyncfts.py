@@ -1,18 +1,14 @@
 """Asynchlonous full-text search facility for phrase search"""
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import logging
 
-from PyQt4.QtCore import (
-    QObject, QThread, QMutex, QWaitCondition, pyqtSignal)
+from PyQt5.QtCore import QMutex, QObject, QThread, QWaitCondition, pyqtSignal
 
 _logger = logging.getLogger(__name__)
 
 
 class _FTSearchThread(QThread):
-    '''This thread performs full text search in the background'''
+    """This thread performs full text search in the background"""
 
     searchFinished = pyqtSignal()
     searchError = pyqtSignal()
@@ -38,8 +34,7 @@ class _FTSearchThread(QThread):
 
             # search
             if query:
-                (query_str1, query_str2, itemtypes,
-                 limit, highlight, merge) = query
+                (query_str1, query_str2, itemtypes, limit, highlight, merge) = query
 
                 self._mutex.lock()
                 collector = self._searcher.make_collector(limit)
@@ -48,10 +43,9 @@ class _FTSearchThread(QThread):
 
                 try:
                     result = self._searcher.search(
-                        collector,
-                        query_str1, query_str2,
-                        itemtypes, highlight)
-                except:
+                        collector, query_str1, query_str2, itemtypes, highlight
+                    )
+                except Exception:
                     self._mutex.lock()
                     self._result = None
                     self._mutex.unlock()
@@ -85,13 +79,19 @@ class _FTSearchThread(QThread):
         self._mutex.unlock()
         self._pending.wakeAll()
 
-    def update_query(self, query_str1=None, query_str2=None, itemtypes=(),
-                     limit=1000, highlight=False, merge=False):
+    def update_query(
+        self,
+        query_str1=None,
+        query_str2=None,
+        itemtypes=(),
+        limit=1000,
+        highlight=False,
+        merge=False,
+    ):
         self._mutex.lock()
         if self._collector:
             self._collector.abort()
-        self._query = (query_str1, query_str2,
-                       itemtypes, limit, highlight, merge)
+        self._query = (query_str1, query_str2, itemtypes, limit, highlight, merge)
         self._mutex.unlock()
         self._pending.wakeAll()
 
@@ -116,15 +116,23 @@ class AsyncFTSearcher(QObject):
         self._thread.searchError.connect(self._onError)
         self._thread.start()
 
-    def update_query(self, query_str1=None, query_str2=None, itemtypes=(),
-                     limit=1000, highlight=False, merge=False):
-        self._thread.update_query(query_str1, query_str2, itemtypes,
-                                  limit, highlight, merge)
+    def update_query(
+        self,
+        query_str1=None,
+        query_str2=None,
+        itemtypes=(),
+        limit=1000,
+        highlight=False,
+        merge=False,
+    ):
+        self._thread.update_query(
+            query_str1, query_str2, itemtypes, limit, highlight, merge
+        )
 
     def shutdown(self):
         self._thread.quit()
         self._thread.wait()
-        self._thread = None
+        del self._thread
 
     def cancel(self):
         self._thread.cancel()

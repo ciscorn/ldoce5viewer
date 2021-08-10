@@ -1,19 +1,13 @@
-'''Global configurations'''
+"""Global configurations"""
 
-from __future__ import absolute_import, unicode_literals, print_function
-
-import sys
 import os
 import os.path
-import tempfile
 import shutil
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import sys
+import tempfile
+import pickle
 
-from PyQt4.QtCore import QReadWriteLock
-
+from PyQt5.QtCore import QReadWriteLock
 
 __config = None
 
@@ -64,94 +58,96 @@ class __Config(object):
 
     def __str__(self):
         self._lock.lockForRead()
-        s = ''.join([
-            'Config(',
-            ', '.join("{0}: {1}".format(k, v) for (k, v) in self._dict),
-            ')'])
+        s = "".join(
+            [
+                "Config(",
+                ", ".join("{0}: {1}".format(k, v) for (k, v) in self._dict),
+                ")",
+            ]
+        )
         self._lock.unlock()
         return s
 
     @property
     def _config_dir(self):
         # Windows
-        if sys.platform.startswith('win'):
-            if 'LOCALAPPDATA' in os.environ:
-                return os.path.join(
-                    os.environ['LOCALAPPDATA'], 'LDOCE5Viewer')
+        if sys.platform.startswith("win"):
+            if "LOCALAPPDATA" in os.environ:
+                return os.path.join(os.environ["LOCALAPPDATA"], "LDOCE5Viewer")
             else:
-                return os.path.join(
-                    os.environ['APPDATA'], 'LDOCE5Viewer')
+                return os.path.join(os.environ["APPDATA"], "LDOCE5Viewer")
         # Mac OS X
-        elif sys.platform.startswith('darwin'):
-            return os.path.expanduser(
-                '~/Library/Application Support/LDOCE5Viewer')
+        elif sys.platform.startswith("darwin"):
+            return os.path.expanduser("~/Library/Application Support/LDOCE5Viewer")
         # Linux
         else:
-            base = os.path.join(os.path.expanduser('~'), '.config')
+            base = os.path.join(os.path.expanduser("~"), ".config")
             # XDG
             try:
                 import xdg.BaseDirectory
+
                 base = xdg.BaseDirectory.xdg_config_home
             except ImportError:
-                if 'XDG_CONFIG_HOME' in os.environ:
-                    base = os.environ['XDG_CONFIG_HOME']
-            return os.path.join(base, 'ldoce5viewer')
+                if "XDG_CONFIG_HOME" in os.environ:
+                    base = os.environ["XDG_CONFIG_HOME"]
+            return os.path.join(base, "ldoce5viewer")
 
     @property
     def _data_dir(self):
         # Windows
-        if sys.platform.startswith('win'):
+        if sys.platform.startswith("win"):
             return self._config_dir
         # Mac OS X
-        elif sys.platform.startswith('darwin'):
+        elif sys.platform.startswith("darwin"):
             return self._config_dir
         # Linux
         else:
-            base = os.path.join(os.path.expanduser('~'), '.local/share/')
+            base = os.path.join(os.path.expanduser("~"), ".local/share/")
             # XDG
             try:
                 import xdg.BaseDirectory
+
                 base = xdg.BaseDirectory.xdg_data_home
             except ImportError:
-                if 'XDG_DATA_HOME' in os.environ:
-                    base = os.environ['XDG_DATA_HOME']
-            return os.path.join(base, 'ldoce5viewer')
+                if "XDG_DATA_HOME" in os.environ:
+                    base = os.environ["XDG_DATA_HOME"]
+            return os.path.join(base, "ldoce5viewer")
 
     @property
     def app_name(self):
-        return 'LDOCE5 Viewer'
+        return "LDOCE5 Viewer"
 
     @property
     def _config_path(self):
-        return os.path.join(self._config_dir, 'config.pickle')
+        return os.path.join(self._config_dir, "config.pickle")
 
     @property
     def filemap_path(self):
-        return os.path.join(self._data_dir, 'filemap.cdb')
+        return os.path.join(self._data_dir, "filemap.cdb")
 
     @property
     def variations_path(self):
-        return os.path.join(self._data_dir, 'variations.cdb')
+        return os.path.join(self._data_dir, "variations.cdb")
 
     @property
     def incremental_path(self):
-        return os.path.join(self._data_dir, 'incremental.db')
+        return os.path.join(self._data_dir, "incremental.db")
 
     @property
     def fulltext_hwdphr_path(self):
-        return os.path.join(self._data_dir, 'fulltext_hp')
+        return os.path.join(self._data_dir, "fulltext_hp")
 
     @property
     def fulltext_defexa_path(self):
-        return os.path.join(self._data_dir, 'fulltext_de')
+        return os.path.join(self._data_dir, "fulltext_de")
 
     @property
     def scan_tmp_path(self):
-        return os.path.join(self._data_dir, 'scan' + self.tmp_suffix)
+        return os.path.join(self._data_dir, "scan" + self.tmp_suffix)
 
     @property
     def tmp_suffix(self):
-        return '.tmp'
+        return ".tmp"
 
     def _remove_tmps(self):
         for name in os.listdir(self._config_dir) + os.listdir(self._data_dir):
@@ -174,7 +170,7 @@ class __Config(object):
     def load(self):
         self._lock.lockForWrite()
         try:
-            with open(self._config_path, 'rb') as f:
+            with open(self._config_path, "rb") as f:
                 self._dict.clear()
                 try:
                     data = pickle.load(f)
@@ -189,12 +185,13 @@ class __Config(object):
     def save(self):
         self._lock.lockForRead()
 
-        if sys.platform == 'win32':
-            with open(self._config_path, 'wb') as f:
+        if sys.platform == "win32":
+            with open(self._config_path, "wb") as f:
                 pickle.dump(self._dict, f)
         else:
             f = tempfile.NamedTemporaryFile(
-                dir=self._config_dir, delete=False, suffix=self.tmp_suffix)
+                dir=self._config_dir, delete=False, suffix=self.tmp_suffix
+            )
             pickle.dump(self._dict, f, protocol=0)
             f.close()
             os.rename(f.name, self._config_path)

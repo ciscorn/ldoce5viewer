@@ -1,16 +1,18 @@
 import os
 
-if os.name == 'nt':
+if os.name == "nt":
     from .windows import AudioClip as _PlatformSpecificAudioClip
 else:
     raise Exception("mp3play can't run on your operating system.")
+
 
 def load(filename):
     """Return an AudioClip for the given filename."""
     return AudioClip(filename)
 
+
 class AudioClip(object):
-    __slots__ = ['_clip']
+    __slots__ = ["_clip"]
 
     def __init__(self, filename):
         """Create an AudioClip for the given filename."""
@@ -30,7 +32,7 @@ class AudioClip(object):
 
     def volume(self, level):
         """Sets the volume between 0 and 100."""
-        assert level >=0 and level <= 100
+        assert level >= 0 and level <= 100
         return self._clip.volume(level)
 
     def isplaying(self):

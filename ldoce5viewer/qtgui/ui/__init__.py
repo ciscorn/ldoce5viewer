@@ -1,3 +1,1 @@
-from . import main
-from . import indexer
-from . import advanced
+from . import advanced, indexer, main

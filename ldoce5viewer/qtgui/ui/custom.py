@@ -1,12 +1,11 @@
-from __future__ import absolute_import
-
 import sys
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4.QtWebKit import *
-from ...utils.text import ellipsis
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWebEngineWidgets import *
+from PyQt5.QtWidgets import *
 
+from ...utils.text import ellipsis
 
 DisplayRole = Qt.DisplayRole
 State_Selected = QStyle.State_Selected
@@ -31,7 +30,8 @@ class ToolButton(QToolButton):
         opt.features &= ~QStyleOptionToolButton.HasMenu
         content_size = opt.iconSize
         return self.style().sizeFromContents(
-                QStyle.CT_ToolButton, opt, content_size, self)
+            QStyle.CT_ToolButton, opt, content_size, self
+        )
 
 
 class LineEdit(QLineEdit):
@@ -44,24 +44,26 @@ class LineEdit(QLineEdit):
         ICONSIZE = self._ICONSIZE
 
         self._buttonFind = QToolButton(self)
-        self._buttonFind.setCursor(Qt.ArrowCursor);
+        self._buttonFind.setCursor(Qt.ArrowCursor)
         self._buttonFind.setIconSize(QSize(ICONSIZE, ICONSIZE))
-        self._buttonFind.setIcon(QIcon(':/icons/edit-find.png'))
+        self._buttonFind.setIcon(QIcon(":/icons/edit-find.png"))
         self._buttonFind.setStyleSheet(
-                "QToolButton { border: none; margin: 0; padding: 0; }")
+            "QToolButton { border: none; margin: 0; padding: 0; }"
+        )
         self._buttonFind.setFocusPolicy(Qt.NoFocus)
         self._buttonFind.clicked.connect(self.selectAll)
 
         self._buttonClear = QToolButton(self)
-        self._buttonClear.hide();
+        self._buttonClear.hide()
         self._buttonClear.setToolTip("Clear")
-        self._buttonClear.setCursor(Qt.ArrowCursor);
+        self._buttonClear.setCursor(Qt.ArrowCursor)
         self._buttonClear.setIconSize(QSize(ICONSIZE, ICONSIZE))
-        self._buttonClear.setIcon(QIcon(':/icons/edit-clear.png'))
+        self._buttonClear.setIcon(QIcon(":/icons/edit-clear.png"))
         self._buttonClear.setStyleSheet(
-                "QToolButton { border: none; margin: 0; padding: 0; }")
+            "QToolButton { border: none; margin: 0; padding: 0; }"
+        )
         self._buttonClear.setFocusPolicy(Qt.NoFocus)
-        self._buttonClear.clicked.connect(self.clear);
+        self._buttonClear.clicked.connect(self.clear)
 
         minsize = self.minimumSizeHint()
         framewidth = self.style().pixelMetric(QStyle.PM_DefaultFrameWidth)
@@ -73,7 +75,8 @@ class LineEdit(QLineEdit):
         height = max(minsize.height(), ICONSIZE + (framewidth + 2) * 2)
         self.setMinimumSize(
             max(minsize.width(), (ICONSIZE + framewidth + 2 + 2) * 2),
-            int(height / 2.0 + 0.5) * 2)
+            int(height / 2.0 + 0.5) * 2,
+        )
 
         self.textChanged.connect(self.__onTextChanged)
 
@@ -81,12 +84,11 @@ class LineEdit(QLineEdit):
         ICONSIZE = self._ICONSIZE
         framewidth = self.style().pixelMetric(QStyle.PM_DefaultFrameWidth)
         rect = self.rect()
-        self._buttonFind.move(
-                framewidth + 3 - 1,
-                (rect.height() - ICONSIZE) / 2 - 1)
+        self._buttonFind.move(framewidth + 3 - 1, (rect.height() - ICONSIZE) / 2 - 1)
         self._buttonClear.move(
-                rect.width() - framewidth - 3 - ICONSIZE - 1,
-                (rect.height() - ICONSIZE) / 2 - 1)
+            rect.width() - framewidth - 3 - ICONSIZE - 1,
+            (rect.height() - ICONSIZE) / 2 - 1,
+        )
 
     def __onTextChanged(self, text):
         self._buttonClear.setVisible(bool(text))
@@ -102,8 +104,7 @@ class LineEditFind(QLineEdit):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.escapePressed.emit()
-        elif event.key() == Qt.Key_Return and \
-                event.modifiers() == Qt.ShiftModifier:
+        elif event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier:
             self.shiftReturnPressed.emit()
         elif event.key() == Qt.Key_Return:
             self.returnPressed.emit()
@@ -112,7 +113,6 @@ class LineEditFind(QLineEdit):
 
 
 class HtmlListWidget(QListWidget):
-
     class HtmlItemDelegate(QStyledItemDelegate):
 
         MARGIN_H = 5
@@ -157,8 +157,7 @@ class HtmlListWidget(QListWidget):
 
     def __init__(self, parent):
         super(HtmlListWidget, self).__init__(parent)
-        QListWidget.setStyleSheet(self,
-                "QListWidget{background-color: white;}")
+        QListWidget.setStyleSheet(self, "QListWidget{background-color: white;}")
         self._item_delegate = HtmlListWidget.HtmlItemDelegate(parent)
         self.setItemDelegate(self._item_delegate)
 
@@ -169,30 +168,30 @@ class HtmlListWidget(QListWidget):
         self._item_delegate.setStyleSheet(s)
 
 
-class WebView(QWebView):
+class WebView(QWebEngineView):
     wheelWithCtrl = pyqtSignal(int)
 
     def __init__(self, parent):
         super(WebView, self).__init__(parent)
 
-        self.setStyleSheet("QWebView{background-color: white;}")
+        self.setStyleSheet("QWebEngineView{background-color: white;}")
 
         self._actionSearchText = QAction(self)
         if sys.platform != "darwin":
             self._actionSearchText.setIcon(
-                    QIcon.fromTheme('edit-find',
-                        QIcon(':/icons/edit-find.png')))
+                QIcon.fromTheme("edit-find", QIcon(":/icons/edit-find.png"))
+            )
         self._actionCopyPlain = QAction(self)
-        self._actionCopyPlain.setText('Copy')
+        self._actionCopyPlain.setText("Copy")
         if sys.platform != "darwin":
             self._actionCopyPlain.setIcon(
-                    QIcon.fromTheme('edit-copy',
-                        QIcon(':/icons/edit-copy.png')))
+                QIcon.fromTheme("edit-copy", QIcon(":/icons/edit-copy.png"))
+            )
         self._actionCopyPlain.triggered.connect(self._copyAsPlainText)
         self._actionCopyPlain.setShortcut(QKeySequence.Copy)
         self.page().selectionChanged.connect(self.__onSelectionChanged)
         self.__onSelectionChanged()
-        self._actionDownloadAudio = QAction(u'Download mp3',  self)
+        self._actionDownloadAudio = QAction(u"Download mp3", self)
 
     def _copyAsPlainText(self):
         text = self.selectedText().strip()
@@ -222,26 +221,25 @@ class WebView(QWebView):
         page = self.page()
         menu = page.createStandardContextMenu()
         actions = menu.actions()
-        
-        # inserts the "Download audio" action
-        frame = page.frameAt(event.pos())
-        hit_test_result = frame.hitTestContent(event.pos())
-        if hit_test_result.linkUrl().scheme() == 'audio':
-            self._audioUrlToDownload = hit_test_result.linkUrl()
-            menu.insertAction(actions[0] if actions else None,
-                    self.actionDownloadAudio)
 
-        # inserts the "Search for ..." action
+        # inserts the "Download audio" action
+        # FIXME
+        # frame = page.frameAt(event.pos())
+        # hit_test_result = frame.hitTestContent(event.pos())
+        # if hit_test_result.linkUrl().scheme() == "audio":
+        #     self._audioUrlToDownload = hit_test_result.linkUrl()
+        #     menu.insertAction(actions[0] if actions else None, self.actionDownloadAudio)
+
+        # Insert the "Search for ..." action
         text = page.selectedText().strip().lower()
         if text:
             text = ellipsis(text, 18)
             self._actionSearchText.setText(u'Lookup "{0}"'.format(text))
-            menu.insertAction(actions[0] if actions else None,
-                    self.actionSearchText)
+            menu.insertAction(actions[0] if actions else None, self.actionSearchText)
 
-        # replaces WebKit's copy action with plain-text copying
+        # Replace WebKit's copy action with plain-text copying
         try:
-            action_copy = page.action(QWebPage.Copy)
+            action_copy = page.action(QWebEnginePage.Copy)
             if action_copy in actions:
                 menu.insertAction(action_copy, self.actionCopyPlain)
                 menu.removeAction(action_copy)
@@ -249,14 +247,14 @@ class WebView(QWebView):
             pass
 
         # Inserts a separator before "Inspect Element"
-        try:
-            action_inspector = page.action(QWebPage.InspectElement)
-            pos = actions.index(action_inspector)
-        except:
-            pass
-        else:
-            if pos > 0 and not actions[pos - 1].isSeparator():
-                menu.insertSeparator(action_inspector)
+        # try:
+        #     action_inspector = page.action(QWebEnginePage.InspectElement)
+        #     pos = actions.index(action_inspector)
+        # except:
+        #     pass
+        # else:
+        #     if pos > 0 and not actions[pos - 1].isSeparator():
+        #         menu.insertSeparator(action_inspector)
 
         # display the context menu
         menu.exec_(event.globalPos())
@@ -267,34 +265,33 @@ class WebView(QWebView):
         else:
             super(WebView, self).keyPressEvent(event)
 
-    #--------------
+    # --------------
     # Mouse Events
-    #--------------
+    # --------------
 
     def mousePressEvent(self, event):
-        if sys.platform not in ('win32', 'darwin'):
+        if sys.platform not in ("win32", "darwin"):
             if self.handleNavMouseButtons(event):
                 return
         super(WebView, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if sys.platform in ('win32', 'darwin'):
+        if sys.platform in ("win32", "darwin"):
             if self.handleNavMouseButtons(event):
                 return
         super(WebView, self).mouseReleaseEvent(event)
 
     def wheelEvent(self, event):
         if event.modifiers() & Qt.ControlModifier:
-             self.wheelWithCtrl.emit(event.delta())
-             return
+            self.wheelWithCtrl.emit(event.angleDelta().y())
+            return
         super(WebView, self).wheelEvent(event)
 
     def handleNavMouseButtons(self, event):
         if event.button() == Qt.XButton1:
-            self.triggerPageAction(QWebPage.Back)
+            self.triggerPageAction(QWebEnginePage.Back)
             return True
         elif event.button() == Qt.XButton2:
-            self.triggerPageAction(QWebPage.Forward)
+            self.triggerPageAction(QWebEnginePage.Forward)
             return True
         return False
-

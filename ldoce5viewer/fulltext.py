@@ -1,25 +1,26 @@
-'''Full-text searcher for headwords/phrases/examples/definitions'''
+"""Full-text searcher for headwords/phrases/examples/definitions"""
 
-from __future__ import absolute_import
-
-import re
-import os.path
-from operator import itemgetter
 import fnmatch
+import os.path
+import re
+from operator import itemgetter
 
 from whoosh import index as wh_index
-from whoosh.fields import Schema, STORED, IDLIST, ID, TEXT
-from whoosh.analysis import StandardAnalyzer, Filter
-from whoosh.query import Variations, Term, Or, And
-from whoosh.qparser import QueryParser, \
-    RangePlugin, BoostPlugin, WildcardPlugin, OperatorsPlugin
-from whoosh.highlight import WholeFragmenter, HtmlFormatter
-from whoosh.collectors import WrappingCollector, \
-        UnlimitedCollector, TopCollector
+from whoosh.analysis import Filter, StandardAnalyzer
+from whoosh.collectors import TopCollector, UnlimitedCollector, WrappingCollector
+from whoosh.fields import ID, IDLIST, STORED, TEXT, Schema
+from whoosh.highlight import HtmlFormatter, WholeFragmenter
+from whoosh.qparser import (
+    BoostPlugin,
+    OperatorsPlugin,
+    QueryParser,
+    RangePlugin,
+    WildcardPlugin,
+)
+from whoosh.query import And, Or, Term, Variations
 
-from .utils.cdb import CDBReader, CDBMaker, CDBError
-from .utils.text import normalize_token, normalize_index_key,\
-    enc_utf8, dec_utf8
+from .utils.cdb import CDBError, CDBMaker, CDBReader
+from .utils.text import dec_utf8, enc_utf8, normalize_index_key, normalize_token
 
 
 class IndexError(Exception):
@@ -46,9 +47,10 @@ class AbortableCollector(WrappingCollector):
         self._aborted = True
 
 
-#-----------------
+# -----------------
 # Word Vatiations
-#-----------------
+# -----------------
+
 
 class VariationsReader(object):
     def __init__(self, path):
@@ -68,13 +70,13 @@ class VariationsReader(object):
             self._reader = None
 
     def get_variations(self, word):
-        r = set((word, ))
+        r = set((word,))
         try:
             s = self._reader[enc_utf8(word)]
         except KeyError:
             return r
 
-        r.update(dec_utf8(w) for w in s.split(b'\0'))
+        r.update(dec_utf8(w) for w in s.split(b"\0"))
         return r
 
 
@@ -83,9 +85,7 @@ class VariationsWriter(object):
         self._writer = CDBMaker(f)
 
     def add(self, word, variations):
-        self._writer.add(
-            enc_utf8(word),
-            b'\0'.join(enc_utf8(v) for v in variations))
+        self._writer.add(enc_utf8(word), b"\0".join(enc_utf8(v) for v in variations))
 
     def finalize(self):
         self._writer.finalize()
@@ -93,8 +93,10 @@ class VariationsWriter(object):
 
 def my_variations(var_reader):
     if var_reader:
+
         def f(fieldname, text, boost=1.0):
             return MyVariations(var_reader, fieldname, text, boost)
+
         return f
     else:
         return Term
@@ -116,19 +118,24 @@ class MyVariations(Variations):
             return cache[text]
         else:
             fieldname = self.fieldname
-            words = [word for word in self.__var_reader.get_variations(text)
-                     if (fieldname, word) in ixreader]
+            words = [
+                word
+                for word in self.__var_reader.get_variations(text)
+                if (fieldname, word) in ixreader
+            ]
             cache[text] = words
             return words
 
     def __deepcopy__(self, x):
-        return MyVariations(self.__var_reader,
-                            self.__fieldname, self.__text, self.__boost)
+        return MyVariations(
+            self.__var_reader, self.__fieldname, self.__text, self.__boost
+        )
 
 
-#-----------------
+# -----------------
 # Index Schema
-#-----------------
+# -----------------
+
 
 class _AccentFilter(Filter):
     def __call__(self, tokens):
@@ -136,23 +143,22 @@ class _AccentFilter(Filter):
             t.text = normalize_token(t.text)
             yield t
 
-_stopwords = frozenset(('a', 'an'))
-_analyzer = (StandardAnalyzer(stoplist=_stopwords) | _AccentFilter())
+
+_stopwords = frozenset(("a", "an"))
+_analyzer = StandardAnalyzer(stoplist=_stopwords) | _AccentFilter()
 _schema = Schema(
-    content=TEXT(
-        stored=True,
-        spelling=True,
-        analyzer=_analyzer),
+    content=TEXT(stored=True, spelling=True, analyzer=_analyzer),
     data=STORED,  # tuple (label, path, prio, sortkey)
     itemtype=ID,
-    asfilter=IDLIST
+    asfilter=IDLIST,
 )
-_schema['content'].scorable = False
+_schema["content"].scorable = False
 
 
-#-----------------
+# -----------------
 # Maker
-#-----------------
+# -----------------
+
 
 class Maker(object):
     def __init__(self, index_dir):
@@ -167,13 +173,12 @@ class Maker(object):
         self._writer = index.writer()
         self._committed = False
 
-    def add_item(self,
-                 itemtype, content, asfilter, label, path, prio, sortkey):
+    def add_item(self, itemtype, content, asfilter, label, path, prio, sortkey):
         self._writer.add_document(
             itemtype=itemtype,
             content=content,
             asfilter=asfilter,
-            data=(label, path, prio, normalize_index_key(sortkey))
+            data=(label, path, prio, normalize_index_key(sortkey)),
         )
 
     def commit(self):
@@ -189,9 +194,10 @@ class Maker(object):
         self._writer = None
 
 
-#-----------------
+# -----------------
 # Searcher
-#-----------------
+# -----------------
+
 
 class Searcher(object):
     def __init__(self, index_dir, var_path):
@@ -204,26 +210,33 @@ class Searcher(object):
         self._var_reader = self._make_var_reader(var_path)
 
         op = OperatorsPlugin(
-            And=r"\bAND\b|&", Or=None,  # r"\bOR\b|\|",
-            Not=r"\bNOT\b|\s+-", AndMaybe=None, Require=None)
-        parser = QueryParser('content', _schema,
-                             termclass=my_variations(self._var_reader))
+            And=r"\bAND\b|&",
+            Or=None,  # r"\bOR\b|\|",
+            Not=r"\bNOT\b|\s+-",
+            AndMaybe=None,
+            Require=None,
+        )
+        parser = QueryParser(
+            "content", _schema, termclass=my_variations(self._var_reader)
+        )
         parser.remove_plugin_class(RangePlugin)
         parser.remove_plugin_class(BoostPlugin)
         parser.remove_plugin_class(WildcardPlugin)
         parser.replace_plugin(op)
         self._parser = parser
 
-        parser_wild = QueryParser('content', _schema,
-                                  termclass=my_variations(self._var_reader))
+        parser_wild = QueryParser(
+            "content", _schema, termclass=my_variations(self._var_reader)
+        )
         parser_wild.remove_plugin_class(RangePlugin)
         parser_wild.remove_plugin_class(BoostPlugin)
         parser_wild.replace_plugin(op)
         self._parser_wild = parser_wild
 
-        op_filter = OperatorsPlugin(And=r"\bAND\b", Or=r"\bOR\b",
-                                    Not=None, AndMaybe=None, Require=None)
-        asf_parser = QueryParser('asfilter', _schema)
+        op_filter = OperatorsPlugin(
+            And=r"\bAND\b", Or=r"\bOR\b", Not=None, AndMaybe=None, Require=None
+        )
+        asf_parser = QueryParser("asfilter", _schema)
         asf_parser.replace_plugin(op_filter)
         self._asf_parser = asf_parser
 
@@ -257,8 +270,9 @@ class Searcher(object):
         else:
             return AbortableCollector(TopCollector(limit))
 
-    def search(self, collector, query_str1=None, query_str2=None,
-               itemtypes=(), highlight=False):
+    def search(
+        self, collector, query_str1=None, query_str2=None, itemtypes=(), highlight=False
+    ):
 
         # rejects '*' and '?'
         if query_str1:
@@ -266,7 +280,7 @@ class Searcher(object):
                 if not kw.replace("*", "").replace("?", "").strip():
                     return []
 
-        wildcard = (query_str1 and any(c in query_str1 for c in "*?"))
+        wildcard = query_str1 and any(c in query_str1 for c in "*?")
 
         parser = self._parser_wild if wildcard else self._parser
         asf_parser = self._asf_parser
@@ -283,10 +297,9 @@ class Searcher(object):
 
             if itemtypes:
                 if len(itemtypes) > 1:
-                    andlist.append(
-                        Or([Term('itemtype', t) for t in itemtypes]))
+                    andlist.append(Or([Term("itemtype", t) for t in itemtypes]))
                 else:
-                    andlist.append(Term('itemtype', itemtypes[0]))
+                    andlist.append(Term("itemtype", itemtypes[0]))
 
             query = And(andlist)
 
@@ -296,7 +309,8 @@ class Searcher(object):
             if highlight:
                 hits.fragmenter = WholeFragmenter()
                 hits.formatter = HtmlFormatter(
-                    tagname='span', classname='s_match', termclass='s_term')
+                    tagname="span", classname="s_match", termclass="s_term"
+                )
 
             if wildcard and query_str1:
                 pat = query_str1.replace("-", "").replace(" ", "")
@@ -307,7 +321,7 @@ class Searcher(object):
             for hit in hits:
                 if collector.aborted:
                     return []
-                (label, path, prio, sortkey) = hit['data']
+                (label, path, prio, sortkey) = hit["data"]
 
                 if wildcard and query_str1:
                     if not wildmatch.match(sortkey):
@@ -315,9 +329,9 @@ class Searcher(object):
 
                 if highlight:
                     if query_str1:
-                        text = hit.highlights('content')
+                        text = hit.highlights("content")
                     else:
-                        text = hit['content']
+                        text = hit["content"]
                 else:
                     text = None
 
@@ -328,4 +342,3 @@ class Searcher(object):
 
             # Return
             return results
-
