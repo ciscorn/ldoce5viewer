@@ -83,8 +83,10 @@ class CDBReader(object):
                     # not exist
                     break
                 if h == hashed:
+                    print(h, p)
                     pk = p + 8
                     (klen, vlen) = _read_2L(mm[p:pk])
+                    print(klen, vlen)
                     pv = pk + klen
                     if key == mm[pk:pv]:
                         return mm[pv : (pv + vlen)]
