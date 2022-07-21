@@ -6,9 +6,9 @@ from difflib import SequenceMatcher
 from functools import partial
 from operator import itemgetter
 
-from PyQt6.QtPrintSupport import QPrintPreviewDialog, QPrintDialog, QPrinter
-from PyQt6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme
-from PyQt6.QtWidgets import *
+from PySide6.QtPrintSupport import QPrintPreviewDialog, QPrintDialog, QPrinter
+from PySide6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme
+from PySide6.QtWidgets import *
 
 try:
     import Cocoa
@@ -16,10 +16,9 @@ try:
 except ImportError:
     objc = None
 
-from PyQt6.QtCore import *
-from PyQt6.QtGui import *
-from PyQt6.QtNetwork import *
-from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
 
 from .. import fulltext, incremental
 from ..ldoce5.idmreader import is_ldoce5_dir

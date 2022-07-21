@@ -1,10 +1,10 @@
 import sys
 
-from PyQt6.QtCore import *
-from PyQt6.QtGui import *
-from PyQt6.QtWebEngineCore import QWebEnginePage
-from PyQt6.QtWebEngineWidgets import *
-from PyQt6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWebEngineCore import QWebEnginePage
+from PySide6.QtWebEngineWidgets import *
+from PySide6.QtWidgets import *
 
 from ...utils.text import ellipsis
 
@@ -96,8 +96,8 @@ class LineEdit(QLineEdit):
 
 
 class LineEditFind(QLineEdit):
-    shiftReturnPressed = pyqtSignal()
-    escapePressed = pyqtSignal()
+    shiftReturnPressed = Signal()
+    escapePressed = Signal()
 
     def __init__(self, parent):
         super(LineEditFind, self).__init__(parent)
@@ -170,7 +170,7 @@ class HtmlListWidget(QListWidget):
 
 
 class WebView(QWebEngineView):
-    wheelWithCtrl = pyqtSignal(int)
+    wheelWithCtrl = Signal(int)
 
     def __init__(self, parent):
         super(WebView, self).__init__(parent)

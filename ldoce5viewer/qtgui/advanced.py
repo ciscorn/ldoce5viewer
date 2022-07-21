@@ -2,9 +2,9 @@
 
 from operator import itemgetter
 
-from PyQt6.QtCore import Qt, QUrl, QUrlQuery
-from PyQt6.QtGui import QIcon, QKeySequence, QAction
-from PyQt6.QtWidgets import QDialog, QTreeWidgetItem
+from PySide6.QtCore import Qt, QUrl, QUrlQuery
+from PySide6.QtGui import QIcon, QKeySequence, QAction
+from PySide6.QtWidgets import QDialog, QTreeWidgetItem
 
 from ..ldoce5 import advtree
 from ..utils.text import MATCH_CLOSE_TAG, MATCH_OPEN_TAG

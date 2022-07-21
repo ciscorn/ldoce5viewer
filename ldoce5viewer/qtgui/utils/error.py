@@ -2,8 +2,8 @@
 
 from logging import StreamHandler
 
-from PyQt6.QtCore import QRecursiveMutex, QObject, pyqtSignal
-from PyQt6.QtWidgets import QPlainTextEdit
+from PySide6.QtCore import QRecursiveMutex, QObject, Signal
+from PySide6.QtWidgets import QPlainTextEdit
 
 
 class MyStreamHandler(StreamHandler):
@@ -22,8 +22,8 @@ class MyStreamHandler(StreamHandler):
 
 
 class StdErrWrapper(QObject):
-    _write = pyqtSignal(type(u""))
-    _flush = pyqtSignal()
+    _write = Signal(type(u""))
+    _flush = Signal()
 
     def __init__(self, old_stderr):
         QObject.__init__(self)

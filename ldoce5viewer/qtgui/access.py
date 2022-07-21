@@ -5,8 +5,8 @@ import os.path
 import sys
 import traceback
 
-from PyQt6.QtCore import QBuffer
-from PyQt6.QtWebEngineCore import (
+from PySide6.QtCore import QBuffer
+from PySide6.QtWebEngineCore import (
     QWebEngineUrlRequestJob,
     QWebEngineUrlSchemeHandler,
 )

@@ -9,9 +9,8 @@ import traceback
 from html import escape
 from struct import Struct
 
-from PyQt6.QtCore import *
-from PyQt6.QtWidgets import *
-from PyQt6.QtGui import *
+from PySide6.QtCore import *
+from PySide6.QtWidgets import *
 
 import lxml.etree as et
 
@@ -165,7 +164,7 @@ class IndexerDialog(QDialog):
 
 
 class IndexingThread(QThread):
-    message = pyqtSignal(type(""))
+    message = Signal(type(""))
 
     def __init__(self, parent, srcdir):
         QThread.__init__(self, parent)

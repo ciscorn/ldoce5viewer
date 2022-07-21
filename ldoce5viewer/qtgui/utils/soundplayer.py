@@ -4,7 +4,7 @@ import os
 import sys
 from tempfile import NamedTemporaryFile
 
-from PyQt6.QtCore import *
+from PySide6.QtCore import *
 
 _logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ else:
 
 # Qt-Phonon
 try:
-    from PyQt6.phonon import Phonon
+    from PySide6.phonon import Phonon
 except ImportError:
     Phonon = None
 

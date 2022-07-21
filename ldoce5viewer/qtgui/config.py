@@ -7,7 +7,7 @@ import sys
 import tempfile
 import pickle
 
-from PyQt6.QtCore import QReadWriteLock
+from PySide6.QtCore import QReadWriteLock
 
 __config = None
 
