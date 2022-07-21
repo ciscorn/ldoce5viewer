@@ -6,7 +6,7 @@ __init__.py:
 	touch $@
 
 %.py: %.ui
-	pyuic5 $< -o $@
+	pyuic6 $< -o $@
 
 .PYONY: clean
 clean:

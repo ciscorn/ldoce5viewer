@@ -2,7 +2,7 @@
 
 import logging
 
-from PyQt5.QtCore import QMutex, QObject, QThread, QWaitCondition, pyqtSignal
+from PyQt6.QtCore import QMutex, QObject, QThread, QWaitCondition, pyqtSignal
 
 _logger = logging.getLogger(__name__)
 

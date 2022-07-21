@@ -1,0 +1,6 @@
+PyQt6>=6.3.0
+PyQt6-WebEngine>=6.3.0
+sip
+lxml>=4.9.1
+configparser>=5.2.0
+Whoosh>=2.7.4
