@@ -6,8 +6,9 @@ from difflib import SequenceMatcher
 from functools import partial
 from operator import itemgetter
 
-from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme
-from PyQt5.QtWidgets import *
+from PySide6.QtPrintSupport import QPrintPreviewDialog, QPrintDialog, QPrinter
+from PySide6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme
+from PySide6.QtWidgets import *
 
 try:
     import Cocoa
@@ -15,10 +16,9 @@ try:
 except ImportError:
     objc = None
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtNetwork import *
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineProfile
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
 
 from .. import fulltext, incremental
 from ..ldoce5.idmreader import is_ldoce5_dir
@@ -112,10 +112,10 @@ class MainWindow(QMainWindow):
         for name in _LOCAL_SCHEMES:
             scheme = QWebEngineUrlScheme(name.encode("ascii"))
             scheme.setFlags(
-                QWebEngineUrlScheme.SecureScheme
-                | QWebEngineUrlScheme.LocalScheme
-                | QWebEngineUrlScheme.LocalAccessAllowed
-                | QWebEngineUrlScheme.CorsEnabled
+                QWebEngineUrlScheme.Flag.SecureScheme
+                | QWebEngineUrlScheme.Flag.LocalScheme
+                | QWebEngineUrlScheme.Flag.LocalAccessAllowed
+                | QWebEngineUrlScheme.Flag.CorsEnabled
             )
             QWebEngineUrlScheme.registerScheme(scheme)
 
@@ -147,10 +147,10 @@ class MainWindow(QMainWindow):
         # Clipboard
         clipboard = QApplication.clipboard()
         clipboard.dataChanged.connect(
-            partial(self._onClipboardChanged, mode=QClipboard.Clipboard)
+            partial(self._onClipboardChanged, mode=QClipboard.Mode.Clipboard)
         )
         clipboard.selectionChanged.connect(
-            partial(self._onClipboardChanged, mode=QClipboard.Selection)
+            partial(self._onClipboardChanged, mode=QClipboard.Mode.Selection)
         )
 
         # Stylesheet for the item list pane
@@ -204,22 +204,22 @@ class MainWindow(QMainWindow):
         sp = self._ui.splitter
         width = event.size().width()
         if width < 350:
-            sp.setOrientation(Qt.Vertical)
+            sp.setOrientation(Qt.Orientation.Vertical)
             ui.actionSearchExamples.setText("E")
             ui.actionSearchDefinitions.setText("D")
             ui.actionAdvancedSearch.setText("A")
         elif width < 550:
-            sp.setOrientation(Qt.Vertical)
+            sp.setOrientation(Qt.Orientation.Vertical)
             ui.actionSearchExamples.setText("Exa")
             ui.actionSearchDefinitions.setText("Def")
             ui.actionAdvancedSearch.setText("Adv")
         elif width < 900:
-            sp.setOrientation(Qt.Horizontal)
+            sp.setOrientation(Qt.Orientation.Horizontal)
             ui.actionSearchExamples.setText("Exa")
             ui.actionSearchDefinitions.setText("Def")
             ui.actionAdvancedSearch.setText("Advanced")
         else:
-            sp.setOrientation(Qt.Horizontal)
+            sp.setOrientation(Qt.Orientation.Horizontal)
             ui.actionSearchExamples.setText("Examples")
             ui.actionSearchDefinitions.setText("Definitions")
             ui.actionAdvancedSearch.setText("Advanced")
@@ -227,30 +227,30 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         key = event.key()
         modifiers = event.modifiers()
-        ctrl = Qt.MetaModifier if _IS_OSX else Qt.ControlModifier
+        ctrl = Qt.KeyboardModifier.MetaModifier if _IS_OSX else Qt.KeyboardModifier.ControlModifier
         le = self._ui.lineEditSearch
 
         if (
-            key == Qt.Key_Down
-            or (key == Qt.Key_J and modifiers == ctrl)
-            or (key == Qt.Key_Return and modifiers == Qt.NoModifier)
+            key == Qt.Key.Key_Down
+            or (key == Qt.Key.Key_J and modifiers == ctrl)
+            or (key == Qt.Key.Key_Return and modifiers == Qt.KeyboardModifier.NoModifier)
         ):
             self.selectItemRelative(1)
         elif (
-            key == Qt.Key_Up
-            or (key == Qt.Key_K and modifiers == ctrl)
-            or (key == Qt.Key_Return and modifiers == Qt.ShiftModifier)
+            key == Qt.Key.Key_Up
+            or (key == Qt.Key.Key_K and modifiers == ctrl)
+            or (key == Qt.Key.Key_Return and modifiers == Qt.KeyboardModifier.ShiftModifier)
         ):
             self.selectItemRelative(-1)
-        elif key == Qt.Key_Backspace:
+        elif key == Qt.Key.Key_Backspace:
             le.setFocus()
             le.setText(self._ui.lineEditSearch.text()[:-1])
         elif key in (
-            Qt.Key_Space,
-            Qt.Key_PageDown,
-            Qt.Key_PageUp,
-            Qt.Key_Home,
-            Qt.Key_End,
+            Qt.Key.Key_Space,
+            Qt.Key.Key_PageDown,
+            Qt.Key.Key_PageUp,
+            Qt.Key.Key_Home,
+            Qt.Key.Key_End,
         ):
             self._ui.webView.setFocus()
             self._ui.webView.keyPressEvent(event)
@@ -265,19 +265,19 @@ class MainWindow(QMainWindow):
         modifiers = event.modifiers()
         mouse_buttons = QApplication.mouseButtons()
 
-        ctrl = Qt.MetaModifier if _IS_OSX else Qt.ControlModifier
+        ctrl = Qt.KeyboardModifier.MetaModifier if _IS_OSX else Qt.KeyboardModifier.ControlModifier
 
-        if (not event.isAutoRepeat()) and mouse_buttons == Qt.NoButton:
+        if (not event.isAutoRepeat()) and mouse_buttons == Qt.MouseButton.NoButton:
             if (
-                key == Qt.Key_Down
-                or (key == Qt.Key_J and modifiers == ctrl)
-                or (key == Qt.Key_Return and modifiers == Qt.NoModifier)
+                key == Qt.Key.Key_Down
+                or (key == Qt.Key.Key_J and modifiers == ctrl)
+                or (key == Qt.Key.Key_Return and modifiers == Qt.KeyboardModifier.NoModifier)
             ):
                 self._loadItem()
             elif (
-                key == Qt.Key_Up
-                or (key == Qt.Key_K and modifiers == ctrl)
-                or (key == Qt.Key_Return and modifiers == Qt.ShiftModifier)
+                key == Qt.Key.Key_Up
+                or (key == Qt.Key.Key_K and modifiers == ctrl)
+                or (key == Qt.Key.Key_Return and modifiers == Qt.KeyboardModifier.ShiftModifier)
             ):
                 self._loadItem()
 
@@ -378,7 +378,7 @@ class MainWindow(QMainWindow):
 
         if sel_row >= 0:
             lw.setCurrentRow(sel_row)
-            lw.scrollToItem(lw.item(sel_row), QAbstractItemView.EnsureVisible)
+            lw.scrollToItem(lw.item(sel_row), QAbstractItemView.ScrollHint.EnsureVisible)
         else:
             lw.scrollToTop()
 
@@ -449,7 +449,7 @@ class MainWindow(QMainWindow):
 
     def _onItemSelectionChanged(self):
         selitems = self._ui.listWidgetIndex.selectedItems()
-        if selitems and QApplication.mouseButtons() != Qt.NoButton:
+        if selitems and QApplication.mouseButtons() != Qt.MouseButton.NoButton:
             self._loadItem(self._ui.listWidgetIndex.row(selitems[0]))
 
     # ---------
@@ -516,8 +516,8 @@ class MainWindow(QMainWindow):
         if len(query.split()) == 1:
             words = self._fts_hwdphr.correct(query)
             cmpl = QCompleter(words, self)
-            cmpl.setModelSorting(QCompleter.UnsortedModel)
-            cmpl.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+            cmpl.setModelSorting(QCompleter.ModelSorting.UnsortedModel)
+            cmpl.setCompletionMode(QCompleter.CompletionMode.UnfilteredPopupCompletion)
             self._ui.lineEditSearch.setCompleter(cmpl)
             cmpl.complete()
 
@@ -759,10 +759,10 @@ class MainWindow(QMainWindow):
             return
 
         clipboard = QApplication.clipboard()
-        if mode == QClipboard.Selection:
-            text = clipboard.text(QClipboard.Selection)
-        elif mode == QClipboard.Clipboard:
-            text = clipboard.text(QClipboard.Clipboard)
+        if mode == QClipboard.Mode.Selection:
+            text = clipboard.text(QClipboard.Mode.Selection)
+        elif mode == QClipboard.Mode.Clipboard:
+            text = clipboard.text(QClipboard.Mode.Clipboard)
         # elif mode == QClipboard.FindBuffer:
         #    text = clipboard.text(QClipboard.FindBuffer)
         else:
@@ -779,18 +779,18 @@ class MainWindow(QMainWindow):
     # -------------
 
     def _onNavForward(self):
-        self._ui.webView.page().triggerAction(QWebEnginePage.Forward)
+        self._ui.webView.page().triggerAction(QWebEnginePage.WebAction.Forward)
 
     def _onNavBack(self):
-        self._ui.webView.page().triggerAction(QWebEnginePage.Back)
+        self._ui.webView.page().triggerAction(QWebEnginePage.WebAction.Back)
 
     def _onNavActionChanged(self):
         webPage = self._ui.webView.page()
         ui = self._ui
         ui.toolButtonNavForward.setEnabled(
-            webPage.action(QWebEnginePage.Forward).isEnabled()
+            webPage.action(QWebEnginePage.WebAction.Forward).isEnabled()
         )
-        ui.toolButtonNavBack.setEnabled(webPage.action(QWebEnginePage.Back).isEnabled())
+        ui.toolButtonNavBack.setEnabled(webPage.action(QWebEnginePage.WebAction.Back).isEnabled())
 
     # -----------
     # Auto Pron
@@ -866,7 +866,7 @@ class MainWindow(QMainWindow):
     def findPrev(self):
         self._ui.webView.findText(
             self._ui.lineEditFind.text(),
-            QWebEnginePage.FindBackward | QWebEnginePage.FindWrapsAroundDocument,
+            QWebEnginePage.FindFlag.FindBackward | QWebEnginePage.FindWrapsAroundDocument,
         )
 
     # -------
@@ -945,10 +945,10 @@ class MainWindow(QMainWindow):
             self,
             "Welcome to the LDOCE5 Viewer",
             msg,
-            QMessageBox.Yes | QMessageBox.Cancel,
-            QMessageBox.Yes,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Yes,
         )
-        if r == QMessageBox.Yes:
+        if r == QMessageBox.StandardButton.Yes:
             self._show_indexer_dialog(autostart=True)
         else:
             self.close()
@@ -964,7 +964,7 @@ class MainWindow(QMainWindow):
         # Show the indexer dialog
         self._unload_searchers()
         dialog = IndexerDialog(self, autostart)
-        if dialog.exec_():
+        if dialog.exec():
             config.save()
             text = "welcome"
             self._ui.lineEditSearch.setText(text)
@@ -998,7 +998,7 @@ class MainWindow(QMainWindow):
         ui.lineEditSearch = LineEdit(self)
         ui.lineEditSearch.setPlaceholderText("Search...")
         ui.lineEditSearch.setInputMethodHints(
-            Qt.ImhUppercaseOnly | Qt.ImhLowercaseOnly | Qt.ImhDigitsOnly
+            Qt.InputMethodHint.ImhUppercaseOnly | Qt.InputMethodHint.ImhLowercaseOnly | Qt.InputMethodHint.ImhDigitsOnly
         )
         toolBar.addWidget(ui.toolButtonNavBack)
         toolBar.addWidget(ui.toolButtonNavForward)
@@ -1042,20 +1042,20 @@ class MainWindow(QMainWindow):
             _set_icon(ui.actionAbout, "help-about")
             _set_icon(ui.actionPrint, "document-print")
             _set_icon(ui.actionPrintPreview, "document-print-preview")
-            _set_icon(webpage.action(QWebEnginePage.Forward), "go-next", "24")
-            _set_icon(webpage.action(QWebEnginePage.Back), "go-previous", "24")
-            _set_icon(webpage.action(QWebEnginePage.Reload), "reload")
-            _set_icon(webpage.action(QWebEnginePage.CopyImageToClipboard), "edit-copy")
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Forward), "go-next", "24")
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Back), "go-previous", "24")
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Reload), "reload")
+            _set_icon(webpage.action(QWebEnginePage.WebAction.CopyImageToClipboard), "edit-copy")
             _set_icon(
-                webpage.action(QWebEnginePage.InspectElement), "document-properties"
+                webpage.action(QWebEnginePage.WebAction.InspectElement), "document-properties"
             )
         else:
             ui.toolBar.setIconSize(QSize(16, 16))
             ui.actionNavForward.setIcon(QIcon(":/icons/go-next-mac.png"))
             ui.actionNavBack.setIcon(QIcon(":/icons/go-previous-mac.png"))
-            _set_icon(webpage.action(QWebEnginePage.Forward))
-            _set_icon(webpage.action(QWebEnginePage.Back))
-            _set_icon(webpage.action(QWebEnginePage.Reload))
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Forward))
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Back))
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Reload))
 
         ui.frameFindbar.setStyleSheet(
             """#frameFindbar {
@@ -1097,19 +1097,19 @@ class MainWindow(QMainWindow):
         # Nav Buttons
         ui.actionNavForward.triggered.connect(self._onNavForward)
         ui.actionNavBack.triggered.connect(self._onNavBack)
-        webpage.action(QWebEnginePage.Forward).changed.connect(self._onNavActionChanged)
-        webpage.action(QWebEnginePage.Back).changed.connect(self._onNavActionChanged)
+        webpage.action(QWebEnginePage.WebAction.Forward).changed.connect(self._onNavActionChanged)
+        webpage.action(QWebEnginePage.WebAction.Back).changed.connect(self._onNavActionChanged)
 
         # ListView
-        ui.listWidgetIndex.setAttribute(Qt.WA_MacShowFocusRect, False)
+        ui.listWidgetIndex.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)
 
         # WebView
         for web_act in (
-            QWebEnginePage.OpenLinkInNewWindow,
-            QWebEnginePage.DownloadLinkToDisk,
-            QWebEnginePage.DownloadImageToDisk,
-            QWebEnginePage.CopyLinkToClipboard,
-            QWebEnginePage.CopyImageToClipboard,
+            QWebEnginePage.WebAction.OpenLinkInNewWindow,
+            QWebEnginePage.WebAction.DownloadLinkToDisk,
+            QWebEnginePage.WebAction.DownloadImageToDisk,
+            QWebEnginePage.WebAction.CopyLinkToClipboard,
+            QWebEnginePage.WebAction.CopyImageToClipboard,
             # QWebEnginePage.OpenFrameInNewWindow,
             # QWebEnginePage.OpenImageInNewWindow,
         ):
@@ -1183,7 +1183,7 @@ class MainWindow(QMainWindow):
             ui.actionCloseInspector, partial(self.setInspectorVisible, visible=False)
         )
         act_conn(
-            webpage.action(QWebEnginePage.InspectElement),
+            webpage.action(QWebEnginePage.WebAction.InspectElement),
             partial(self.setInspectorVisible, visible=True),
         )
 
@@ -1195,7 +1195,7 @@ class MainWindow(QMainWindow):
         ui.actionGroupAutoPron.triggered.connect(self._onAutoPronChanged)
 
         self.addAction(ui.actionFocusLineEdit)
-        self.addAction(webpage.action(QWebEnginePage.SelectAll))
+        self.addAction(webpage.action(QWebEnginePage.WebAction.SelectAll))
 
         # Set an action to each ToolButton
         ui.toolButtonFindNext.setDefaultAction(ui.actionFindNext)
@@ -1209,35 +1209,35 @@ class MainWindow(QMainWindow):
         self.addAction(actionPaste)
 
         # Shorcut keys
-        ui.actionQuit.setShortcuts(QKeySequence.Quit)
-        ui.actionHelp.setShortcuts(QKeySequence.HelpContents)
-        ui.actionFind.setShortcuts(QKeySequence.Find)
-        ui.actionFindNext.setShortcuts(QKeySequence.FindNext)
-        ui.actionFindPrev.setShortcuts(QKeySequence.FindPrevious)
-        ui.actionZoomIn.setShortcuts(QKeySequence.ZoomIn)
-        ui.actionZoomOut.setShortcuts(QKeySequence.ZoomOut)
-        ui.actionPrint.setShortcuts(QKeySequence.Print)
+        ui.actionQuit.setShortcuts(QKeySequence.StandardKey.Quit)
+        ui.actionHelp.setShortcuts(QKeySequence.StandardKey.HelpContents)
+        ui.actionFind.setShortcuts(QKeySequence.StandardKey.Find)
+        ui.actionFindNext.setShortcuts(QKeySequence.StandardKey.FindNext)
+        ui.actionFindPrev.setShortcuts(QKeySequence.StandardKey.FindPrevious)
+        ui.actionZoomIn.setShortcuts(QKeySequence.StandardKey.ZoomIn)
+        ui.actionZoomOut.setShortcuts(QKeySequence.StandardKey.ZoomOut)
+        ui.actionPrint.setShortcuts(QKeySequence.StandardKey.Print)
         ui.actionNormalSize.setShortcut(QKeySequence("Ctrl+0"))
         ui.actionFocusLineEdit.setShortcut(QKeySequence("Ctrl+L"))
-        webpage.action(QWebEnginePage.SelectAll).setShortcut(QKeySequence("Ctrl+A"))
-        webpage.action(QWebEnginePage.Back).setShortcuts(
+        webpage.action(QWebEnginePage.WebAction.SelectAll).setShortcut(QKeySequence("Ctrl+A"))
+        webpage.action(QWebEnginePage.WebAction.Back).setShortcuts(
             [
                 k
-                for k in QKeySequence.keyBindings(QKeySequence.Back)
+                for k in QKeySequence.keyBindings(QKeySequence.StandardKey.Back)
                 if not k.matches(QKeySequence("Backspace"))
             ]
         )
-        webpage.action(QWebEnginePage.Forward).setShortcuts(
+        webpage.action(QWebEnginePage.WebAction.Forward).setShortcuts(
             [
                 k
-                for k in QKeySequence.keyBindings(QKeySequence.Forward)
+                for k in QKeySequence.keyBindings(QKeySequence.StandardKey.Forward)
                 if not k.matches(QKeySequence("Shift+Backspace"))
             ]
         )
         ui.actionNavBack.setShortcuts(
             [
                 k
-                for k in QKeySequence.keyBindings(QKeySequence.Back)
+                for k in QKeySequence.keyBindings(QKeySequence.StandardKey.Back)
                 if not k.matches(QKeySequence("Backspace"))
             ]
             + [QKeySequence("Ctrl+[")]
@@ -1245,7 +1245,7 @@ class MainWindow(QMainWindow):
         ui.actionNavForward.setShortcuts(
             [
                 k
-                for k in QKeySequence.keyBindings(QKeySequence.Forward)
+                for k in QKeySequence.keyBindings(QKeySequence.StandardKey.Forward)
                 if not k.matches(QKeySequence("Shift+Backspace"))
             ]
             + [QKeySequence("Ctrl+]")]

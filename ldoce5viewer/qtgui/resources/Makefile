@@ -3,7 +3,7 @@
 FILES := $(wildcard *.png) $(wildcard *.svg) $(wildcard */*.png)
 
 __init__.py: resource.qrc $(FILES)
-	pyrcc4 -py3 $< -o $@
+	pyside6-rcc $< -o $@
 
 .PHONY: clean
 clean:

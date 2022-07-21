@@ -2,7 +2,7 @@
 
 import logging
 
-from PyQt5.QtCore import QMutex, QObject, QThread, QWaitCondition, pyqtSignal
+from PySide6.QtCore import QMutex, QObject, QThread, QWaitCondition, Signal
 
 _logger = logging.getLogger(__name__)
 
@@ -10,8 +10,8 @@ _logger = logging.getLogger(__name__)
 class _FTSearchThread(QThread):
     """This thread performs full text search in the background"""
 
-    searchFinished = pyqtSignal()
-    searchError = pyqtSignal()
+    searchFinished = Signal()
+    searchError = Signal()
 
     def __init__(self, searcher, parent):
         QThread.__init__(self, parent)
@@ -104,8 +104,8 @@ class _FTSearchThread(QThread):
 
 
 class AsyncFTSearcher(QObject):
-    finished = pyqtSignal()
-    error = pyqtSignal()
+    finished = Signal()
+    error = Signal()
 
     def __init__(self, parent, searcher):
         QObject.__init__(self, parent)
