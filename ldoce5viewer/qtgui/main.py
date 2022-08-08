@@ -7,7 +7,7 @@ from functools import partial
 from operator import itemgetter
 
 from PySide6.QtPrintSupport import QPrintPreviewDialog, QPrintDialog, QPrinter
-from PySide6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme
+from PySide6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme, QWebEngineUrlRequestInfo
 from PySide6.QtWidgets import *
 
 try:
@@ -62,11 +62,11 @@ def _incr_delay_func(count):
 
 
 class UrlRequestInterceptor(QWebEngineUrlRequestInterceptor):
-    def __init__(self, main_window):
-        self._main_window = main_window
-        super().__init__(main_window)
+    def __init__(self, parent=None):
+        self._main_window = parent
+        super().__init__(parent)
 
-    def interceptRequest(self, info):
+    def interceptRequest(self, info: QWebEngineUrlRequestInfo):
         url = info.requestUrl()
         if url.scheme() == "audio":
             self._main_window._playbackAudio(url.path())
@@ -125,7 +125,8 @@ class MainWindow(QMainWindow):
             profile.installUrlSchemeHandler(name.encode("ascii"), self._scheme_handler)
 
         # Url request interceptor
-        profile.setUrlRequestInterceptor(UrlRequestInterceptor(self))
+        # interceptor = UrlRequestInterceptor(self)
+        # QWebEngineProfile.defaultProfile().setUrlRequestInterceptor(interceptor)
 
         # Setup
         self._setup_ui()
