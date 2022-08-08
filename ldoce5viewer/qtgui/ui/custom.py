@@ -220,7 +220,7 @@ class WebView(QWebEngineView):
 
     def contextMenuEvent(self, event):
         page = self.page()
-        menu = page.createStandardContextMenu()
+        menu = self.createStandardContextMenu()
         actions = menu.actions()
 
         # inserts the "Download audio" action
