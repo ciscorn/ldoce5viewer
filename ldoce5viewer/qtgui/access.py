@@ -5,7 +5,7 @@ import os.path
 import sys
 import traceback
 
-from PySide6.QtCore import QBuffer
+from PySide6.QtCore import QBuffer, QUrl
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtWebEngineCore import (
     QWebEngineUrlRequestJob,
@@ -133,11 +133,24 @@ class MyUrlSchemeHandler(QWebEngineUrlSchemeHandler):
         elif scheme == "audio":
             path = url.path().split("#", 1)[0]
             (data, mime) = self._ldoce5.get_content(path)
+
+            buffer = self.create_buffer(data, self.parent())
+
+            audio_output = QAudioOutput(self.parent())
+            player = QMediaPlayer(self.parent())
+            player.setAudioOutput(audio_output)
+            player.setSourceDevice(buffer, QUrl(path))
+            player.play()
+            return
         else:
             job.fail(QWebEngineUrlRequestJob.Error.RequestAborted)
 
-        buffer = QBuffer(job)
+        buffer = self.create_buffer(data, job)
+        job.reply(mime.encode("ascii"), buffer)
+
+    def create_buffer(self, data, parent):
+        buffer = QBuffer(parent)
         buffer.open(QBuffer.OpenModeFlag.ReadWrite)
         buffer.write(data or b"")
         buffer.seek(0)
-        job.reply(mime.encode("ascii"), buffer)
+        return buffer
