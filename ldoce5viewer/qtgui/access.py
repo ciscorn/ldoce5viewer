@@ -132,15 +132,7 @@ class MyUrlSchemeHandler(QWebEngineUrlSchemeHandler):
                 data = b"<p>The full-text search index has not been created yet or broken.</p>"
         elif scheme == "audio":
             path = url.path().split("#", 1)[0]
-            (data, mime) = self._ldoce5.get_content(path)
-
-            buffer = self.create_buffer(data, self.parent())
-
-            audio_output = QAudioOutput(self.parent())
-            player = QMediaPlayer(self.parent())
-            player.setAudioOutput(audio_output)
-            player.setSourceDevice(buffer, QUrl(path))
-            player.play()
+            self.play_audio(path)
             return
         else:
             job.fail(QWebEngineUrlRequestJob.Error.RequestAborted)
@@ -154,3 +146,13 @@ class MyUrlSchemeHandler(QWebEngineUrlSchemeHandler):
         buffer.write(data or b"")
         buffer.seek(0)
         return buffer
+
+    def play_audio(self, path):
+        (data, mime) = self._ldoce5.get_content(path)
+
+        buffer = self.create_buffer(data, self.parent())
+        audio_output = QAudioOutput(self.parent())
+        player = QMediaPlayer(self.parent())
+        player.setAudioOutput(audio_output)
+        player.setSourceDevice(buffer, QUrl(path))
+        player.play()

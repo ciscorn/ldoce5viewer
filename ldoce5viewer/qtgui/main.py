@@ -6,6 +6,7 @@ from difflib import SequenceMatcher
 from functools import partial
 from operator import itemgetter
 
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtPrintSupport import QPrintPreviewDialog, QPrintDialog, QPrinter
 from PySide6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme, QWebEngineUrlRequestInfo
 from PySide6.QtWidgets import *
@@ -23,7 +24,6 @@ from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
 from .. import fulltext, incremental
 from ..ldoce5.idmreader import is_ldoce5_dir
 from ..utils.text import MATCH_CLOSE_TAG, MATCH_OPEN_TAG, ellipsis, normalize_index_key
-from . import indexer
 from .access import MyUrlSchemeHandler, _load_static_data
 from .advanced import AdvancedSearchDialog
 from .asyncfts import AsyncFTSearcher
@@ -59,24 +59,6 @@ _IS_OSX = sys.platform.startswith("darwin")
 def _incr_delay_func(count):
     x = max(0.3, min(1, float(count) / _INCREMENTAL_LIMIT))
     return int(_MAX_DELAY_UPDATE_INDEX * x)
-
-
-class UrlRequestInterceptor(QWebEngineUrlRequestInterceptor):
-    def __init__(self, parent=None):
-        self._main_window = parent
-        super().__init__(parent)
-
-    def interceptRequest(self, info: QWebEngineUrlRequestInfo):
-        url = info.requestUrl()
-        if url.scheme() == "audio":
-            self._main_window._playbackAudio(url.path())
-        elif url.scheme() == "lookup":
-            query = dict((k, v) for (k, v) in QUrlQuery(url).queryItems())
-            if "q" in query:
-                q = query["q"].replace("+", " ")
-                self._main_window._ui.lineEditSearch.setText(q)
-                self._main_window._instantSearch(pending=True, delay=False)
-
 
 class MainWindow(QMainWindow):
 
@@ -124,10 +106,6 @@ class MainWindow(QMainWindow):
         for name in _LOCAL_SCHEMES:
             profile.installUrlSchemeHandler(name.encode("ascii"), self._scheme_handler)
 
-        # Url request interceptor
-        # interceptor = UrlRequestInterceptor(self)
-        # QWebEngineProfile.defaultProfile().setUrlRequestInterceptor(interceptor)
-
         # Setup
         self._setup_ui()
         self._restore_from_config()
@@ -141,7 +119,6 @@ class MainWindow(QMainWindow):
 
         self._timerUpdateIndex = _makeSingleShotTimer(self._updateIndex)
         self._timerAutoFTS = _makeSingleShotTimer(self._onTimerAutoFullSearchTimeout)
-        self._timerAutoPron = _makeSingleShotTimer(self._onTimerAutoPronTimeout)
         self._timerSpellCorrection = _makeSingleShotTimer(self._onTimerSpellCorrection)
         self._timerSearchingLabel = _makeSingleShotTimer(self._onTimerSearchingLabel)
 
@@ -577,37 +554,6 @@ class MainWindow(QMainWindow):
     # ----------
     # WebView
     # ----------
-
-    def _playbackAudio(self, path):
-        self._getAudioData(path, lambda data: self._soundplayer.play(data))
-
-    def _getAudioData(self, path, callback):
-        (archive, name) = path.lstrip("/").split("/", 1)
-        if archive in ("us_hwd_pron", "gb_hwd_pron", "exa_pron", "sfx", "sound"):
-            path = "/{0}/{1}".format(archive, name)
-            (data, _) = self._scheme_handler.get_ldoce_content(path)
-            callback(data)
-
-    def downloadSelectedAudio(self):
-        pass
-        # FIXME
-        # path = self._ui.webView.audioUrlToDownload.path()
-
-        # def showSaveDialog(data):
-        #     filename = QFileDialog.getSaveFileName(
-        #         self, "Save mp3", "", "MP3 Files (*.mp3)"
-        #     )[0]
-        #     if filename != "":
-        #         file = open(filename, "w")
-        #         file.write(data)
-        #         file.close()
-
-        # self._getAudioData(path, showSaveDialog)
-
-    # def _onWebViewLinkClicked(self, url):
-    #     # FIXME: not a local scheme
-    #     # webbrowser.open(str(url.toEncoded()))
-
     def _onWebViewWheelWithCtrl(self, delta):
         self.setZoom(delta / 120.0, relative=True)
 
@@ -670,7 +616,7 @@ class MainWindow(QMainWindow):
 
         # auto pronunciation playback
         if not history.canGoForward():
-            self._autoPronPlayback()
+            self._auto_pron_playback()
 
         # FIXME: restore search phrase
         # hist_item = history.currentItem()
@@ -797,21 +743,21 @@ class MainWindow(QMainWindow):
     # Auto Pron
     # -----------
 
-    def _autoPronPlayback(self):
-        self._timerAutoPron.start(_INTERVAL_AUTO_PRON)
+    def _auto_pron_playback(self):
+        QTimer.singleShot(_INTERVAL_AUTO_PRON, self._on_timer_auto_pron_timeout)
 
-    def _onTimerAutoPronTimeout(self):
-        autoplayback = get_config().get("autoPronPlayback", None)
-        if autoplayback:
-            pass
-            # FIXME: metaData is not supported on PyQt5
-            # metaData = self._ui.webView.page().mainFrame().metaData()
-            # if autoplayback == "US" and ("us_pron" in metaData):
-            #     self._playbackAudio("/us_hwd_pron/" + metaData["us_pron"][0])
-            # elif autoplayback == "GB" and ("gb_pron" in metaData):
-            #     self._playbackAudio("/gb_hwd_pron/" + metaData["gb_pron"][0])
+    def _playback_audio(self, name):
+        language = get_config().get("autoPronPlayback", None)
+        path = f"/{language.lower()}_hwd_pron/{name}"
+        self._scheme_handler.play_audio(path)
 
-    def _onAutoPronChanged(self, action):
+    def _on_timer_auto_pron_timeout(self):
+        language = get_config().get("autoPronPlayback", None)
+        if language in ("US", "GB"):
+            js = f"""document.querySelector("meta[name='{language.lower()}_pron']").getAttribute("content")"""
+            self._ui.webView.page().runJavaScript(js, 0, self._playback_audio)
+
+    def _on_auto_pron_changed(self, action):
         config = get_config()
         if action == self._ui.actionPronUS:
             config["autoPronPlayback"] = "US"
@@ -1173,7 +1119,6 @@ class MainWindow(QMainWindow):
         act_conn(ui.actionSearchDefinitions, self._onSearchDefinitions)
         act_conn(ui.actionAdvancedSearch, self._onAdvancedSearch)
         act_conn(ui.webView.actionSearchText, self.searchSelectedText)
-        act_conn(ui.webView.actionDownloadAudio, self.downloadSelectedAudio)
         act_conn(ui.actionZoomIn, partial(self.setZoom, 1, relative=True))
         act_conn(ui.actionZoomOut, partial(self.setZoom, -1, relative=True))
         act_conn(ui.actionNormalSize, partial(self.setZoom, 0))
@@ -1193,7 +1138,7 @@ class MainWindow(QMainWindow):
         ui.actionGroupAutoPron.addAction(ui.actionPronGB)
         ui.actionGroupAutoPron.addAction(ui.actionPronUS)
         ui.actionGroupAutoPron.setExclusive(True)
-        ui.actionGroupAutoPron.triggered.connect(self._onAutoPronChanged)
+        ui.actionGroupAutoPron.triggered.connect(self._on_auto_pron_changed)
 
         self.addAction(ui.actionFocusLineEdit)
         self.addAction(webpage.action(QWebEnginePage.WebAction.SelectAll))
