@@ -5,7 +5,7 @@ import os.path
 import sys
 import traceback
 
-from PySide6.QtCore import QBuffer, QUrl
+from PySide6.QtCore import QBuffer, QUrl, QUrlQuery
 from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtWebEngineCore import (
     QWebEngineUrlRequestJob,
@@ -134,6 +134,12 @@ class MyUrlSchemeHandler(QWebEngineUrlSchemeHandler):
             path = url.path().split("#", 1)[0]
             self.play_audio(path)
             return
+        elif scheme == "lookup":
+            query = dict((k, v) for (k, v) in QUrlQuery(url).queryItems())
+            if "q" in query:
+                q = query["q"].replace("+", " ")
+                self.parent()._ui.lineEditSearch.setText(q)
+                self.parent()._instantSearch(pending=True, delay=False)
         else:
             job.fail(QWebEngineUrlRequestJob.Error.RequestAborted)
 

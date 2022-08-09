@@ -6,9 +6,8 @@ from difflib import SequenceMatcher
 from functools import partial
 from operator import itemgetter
 
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtPrintSupport import QPrintPreviewDialog, QPrintDialog, QPrinter
-from PySide6.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme, QWebEngineUrlRequestInfo
+from PySide6.QtWebEngineCore import QWebEngineUrlScheme
 from PySide6.QtWidgets import *
 
 try:
@@ -31,7 +30,6 @@ from .config import get_config
 from .indexer import IndexerDialog
 from .ui.custom import LineEdit, ToolButton
 from .ui.main import Ui_MainWindow
-from .utils.soundplayer import create_soundplayer
 
 # Config
 _INDEX_SUPPORTED = "2013.02.25"
@@ -48,7 +46,6 @@ _LAZY_INCREMENTAL = "incremental"
 _LAZY_FTS_HWDPHR = "fts_hwdphr"
 _LAZY_FTS_DEFEXA = "fts_defexa"
 _LAZY_FTS_HWDPHR_ASYNC = "fts_hwdphr_async"
-_LAZY_SOUNDPLAYER = "soundplayer"
 _LAZY_ADVSEARCH_WINDOW = "advsearch_window"
 _LAZY_PRINTER = "printer"
 
@@ -170,8 +167,6 @@ class MainWindow(QMainWindow):
                 lazy[_LAZY_ADVSEARCH_WINDOW].close()
             self._save_to_configfile()
             self._unload_searchers()
-            if _LAZY_SOUNDPLAYER in lazy:
-                lazy[_LAZY_SOUNDPLAYER].close()
             super(MainWindow, self).closeEvent(event)
         else:
             self.hide()
@@ -1328,16 +1323,6 @@ class MainWindow(QMainWindow):
                 )
             except (EnvironmentError, incremental.IndexError):
                 pass
-
-        return obj
-
-    @property
-    def _soundplayer(self):
-        obj = self._lazy.get(_LAZY_SOUNDPLAYER, None)
-        if obj is None:
-            obj = self._lazy[_LAZY_SOUNDPLAYER] = create_soundplayer(
-                self, get_config()._data_dir
-            )
 
         return obj
 
