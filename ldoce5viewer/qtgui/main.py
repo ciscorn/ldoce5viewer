@@ -7,7 +7,7 @@ from functools import partial
 from operator import itemgetter
 
 from PySide6.QtPrintSupport import QPrintPreviewDialog, QPrintDialog, QPrinter
-from PySide6.QtWebEngineCore import QWebEngineUrlScheme
+from PySide6.QtWebEngineCore import QWebEngineUrlScheme, QWebEngineFindTextResult
 from PySide6.QtWidgets import *
 
 try:
@@ -36,7 +36,7 @@ _INDEX_SUPPORTED = "2013.02.25"
 _FTS_HWDPHR_LIMIT = 10000
 _INCREMENTAL_LIMIT = 500
 _MAX_DELAY_UPDATE_INDEX = 100
-_INTERVAL_AUTO_PRON = 50
+_INTERVAL_AUTO_PRON = 500
 _LOCAL_SCHEMES = frozenset(("dict", "static", "search", "audio", "lookup"))
 _HELP_PAGE_URL = "https://forward-backward.co.jp/ldoce5viewer/manual/"
 
@@ -118,6 +118,7 @@ class MainWindow(QMainWindow):
         self._timerAutoFTS = _makeSingleShotTimer(self._onTimerAutoFullSearchTimeout)
         self._timerSpellCorrection = _makeSingleShotTimer(self._onTimerSpellCorrection)
         self._timerSearchingLabel = _makeSingleShotTimer(self._onTimerSearchingLabel)
+        self._auto_pron_timer = _makeSingleShotTimer(self._on_timer_auto_pron_timeout)
 
         # Clipboard
         clipboard = QApplication.clipboard()
@@ -739,9 +740,14 @@ class MainWindow(QMainWindow):
     # -----------
 
     def _auto_pron_playback(self):
-        QTimer.singleShot(_INTERVAL_AUTO_PRON, self._on_timer_auto_pron_timeout)
+        if self._auto_pron_timer.isActive():
+            self._auto_pron_timer.stop()
+        self._auto_pron_timer.setInterval(_INTERVAL_AUTO_PRON)
+        self._auto_pron_timer.start()
 
     def _playback_audio(self, name):
+        if name == "":
+            return
         language = get_config().get("autoPronPlayback", None)
         path = f"/{language.lower()}_hwd_pron/{name}"
         self._scheme_handler.play_audio(path)
@@ -749,7 +755,10 @@ class MainWindow(QMainWindow):
     def _on_timer_auto_pron_timeout(self):
         language = get_config().get("autoPronPlayback", None)
         if language in ("US", "GB"):
-            js = f"""document.querySelector("meta[name='{language.lower()}_pron']").getAttribute("content")"""
+            js = f"""
+            const meta = document.querySelector("meta[name='{language.lower()}_pron']");
+            (meta) ? meta.getAttribute("content") : "";
+            """
             self._ui.webView.page().runJavaScript(js, 0, self._playback_audio)
 
     def _on_auto_pron_changed(self, action):
@@ -782,33 +791,28 @@ class MainWindow(QMainWindow):
         elif curr_visible:
             self.findText("")
 
-    def findText(self, text):
-        self._ui.actionFindNext.setEnabled(bool(text))
-        self._ui.actionFindPrev.setEnabled(bool(text))
-
-        findtext = self._ui.webView.findText
-        findtext("")
-        findtext("", QWebEnginePage.HighlightAllOccurrences)
-        found = findtext(text, QWebEnginePage.HighlightAllOccurrences)
-        self._ui.actionFindNext.setEnabled(found)
-        self._ui.actionFindPrev.setEnabled(found)
-        if found:
-            findtext(text, QWebEnginePage.FindWrapsAroundDocument)
-        if found or not text:
-            style = "QLineEdit{ background-color: auto; color: auto; }"
+    def _find_text_finished(self, result: QWebEngineFindTextResult):
+        self._ui.actionFindNext.setEnabled(result.numberOfMatches() > 1)
+        self._ui.actionFindPrev.setEnabled(result.numberOfMatches() > 1)
+        if result.numberOfMatches() == 1:
+            self._ui.labelFindResults.setText(f"{result.numberOfMatches()} match")
+        elif result.numberOfMatches() == 0:
+            self._ui.labelFindResults.setText("")
         else:
-            style = "QLineEdit { background-color: #f77; color: white; }"
-        self._ui.lineEditFind.setStyleSheet(style)
+            self._ui.labelFindResults.setText(f"{result.activeMatch()} of {result.numberOfMatches()} matches")
+
+    def findText(self, text):
+        self._ui.webView.page().findText(text)
 
     def findNext(self):
         self._ui.webView.findText(
-            self._ui.lineEditFind.text(), QWebEnginePage.FindWrapsAroundDocument
+            self._ui.lineEditFind.text()
         )
 
     def findPrev(self):
         self._ui.webView.findText(
             self._ui.lineEditFind.text(),
-            QWebEnginePage.FindFlag.FindBackward | QWebEnginePage.FindWrapsAroundDocument,
+            QWebEnginePage.FindFlag.FindBackward
         )
 
     # -------
@@ -1097,6 +1101,7 @@ class MainWindow(QMainWindow):
         ui.webView.wheelWithCtrl.connect(self._onWebViewWheelWithCtrl)
         ui.webView.urlChanged.connect(self._onUrlChanged)
         ui.webView.loadFinished.connect(self._onLoadFinished)
+        ui.webView.page().findTextFinished.connect(self._find_text_finished)
 
         # Actions
         def act_conn(action, slot):
