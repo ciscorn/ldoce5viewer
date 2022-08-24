@@ -6,8 +6,9 @@ from difflib import SequenceMatcher
 from functools import partial
 from operator import itemgetter
 
-from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor, QWebEngineUrlScheme
-from PyQt5.QtWidgets import *
+from PySide6.QtPrintSupport import QPrintPreviewDialog, QPrintDialog, QPrinter
+from PySide6.QtWebEngineCore import QWebEngineUrlScheme, QWebEngineFindTextResult
+from PySide6.QtWidgets import *
 
 try:
     import Cocoa
@@ -15,15 +16,13 @@ try:
 except ImportError:
     objc = None
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtNetwork import *
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineProfile
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
 
 from .. import fulltext, incremental
 from ..ldoce5.idmreader import is_ldoce5_dir
 from ..utils.text import MATCH_CLOSE_TAG, MATCH_OPEN_TAG, ellipsis, normalize_index_key
-from . import indexer
 from .access import MyUrlSchemeHandler, _load_static_data
 from .advanced import AdvancedSearchDialog
 from .asyncfts import AsyncFTSearcher
@@ -31,14 +30,13 @@ from .config import get_config
 from .indexer import IndexerDialog
 from .ui.custom import LineEdit, ToolButton
 from .ui.main import Ui_MainWindow
-from .utils.soundplayer import create_soundplayer
 
 # Config
 _INDEX_SUPPORTED = "2013.02.25"
 _FTS_HWDPHR_LIMIT = 10000
 _INCREMENTAL_LIMIT = 500
 _MAX_DELAY_UPDATE_INDEX = 100
-_INTERVAL_AUTO_PRON = 50
+_INTERVAL_AUTO_PRON = 500
 _LOCAL_SCHEMES = frozenset(("dict", "static", "search", "audio", "lookup"))
 _HELP_PAGE_URL = "https://forward-backward.co.jp/ldoce5viewer/manual/"
 
@@ -48,7 +46,6 @@ _LAZY_INCREMENTAL = "incremental"
 _LAZY_FTS_HWDPHR = "fts_hwdphr"
 _LAZY_FTS_DEFEXA = "fts_defexa"
 _LAZY_FTS_HWDPHR_ASYNC = "fts_hwdphr_async"
-_LAZY_SOUNDPLAYER = "soundplayer"
 _LAZY_ADVSEARCH_WINDOW = "advsearch_window"
 _LAZY_PRINTER = "printer"
 
@@ -59,24 +56,6 @@ _IS_OSX = sys.platform.startswith("darwin")
 def _incr_delay_func(count):
     x = max(0.3, min(1, float(count) / _INCREMENTAL_LIMIT))
     return int(_MAX_DELAY_UPDATE_INDEX * x)
-
-
-class UrlRequestInterceptor(QWebEngineUrlRequestInterceptor):
-    def __init__(self, main_window):
-        self._main_window = main_window
-        super().__init__(main_window)
-
-    def interceptRequest(self, info):
-        url = info.requestUrl()
-        if url.scheme() == "audio":
-            self._main_window._playbackAudio(url.path())
-        elif url.scheme() == "lookup":
-            query = dict((k, v) for (k, v) in QUrlQuery(url).queryItems())
-            if "q" in query:
-                q = query["q"].replace("+", " ")
-                self._main_window._ui.lineEditSearch.setText(q)
-                self._main_window._instantSearch(pending=True, delay=False)
-
 
 class MainWindow(QMainWindow):
 
@@ -112,10 +91,10 @@ class MainWindow(QMainWindow):
         for name in _LOCAL_SCHEMES:
             scheme = QWebEngineUrlScheme(name.encode("ascii"))
             scheme.setFlags(
-                QWebEngineUrlScheme.SecureScheme
-                | QWebEngineUrlScheme.LocalScheme
-                | QWebEngineUrlScheme.LocalAccessAllowed
-                | QWebEngineUrlScheme.CorsEnabled
+                QWebEngineUrlScheme.Flag.SecureScheme
+                | QWebEngineUrlScheme.Flag.LocalScheme
+                | QWebEngineUrlScheme.Flag.LocalAccessAllowed
+                | QWebEngineUrlScheme.Flag.CorsEnabled
             )
             QWebEngineUrlScheme.registerScheme(scheme)
 
@@ -123,9 +102,6 @@ class MainWindow(QMainWindow):
         profile = QWebEngineProfile.defaultProfile()
         for name in _LOCAL_SCHEMES:
             profile.installUrlSchemeHandler(name.encode("ascii"), self._scheme_handler)
-
-        # Url request interceptor
-        profile.setUrlRequestInterceptor(UrlRequestInterceptor(self))
 
         # Setup
         self._setup_ui()
@@ -140,17 +116,17 @@ class MainWindow(QMainWindow):
 
         self._timerUpdateIndex = _makeSingleShotTimer(self._updateIndex)
         self._timerAutoFTS = _makeSingleShotTimer(self._onTimerAutoFullSearchTimeout)
-        self._timerAutoPron = _makeSingleShotTimer(self._onTimerAutoPronTimeout)
         self._timerSpellCorrection = _makeSingleShotTimer(self._onTimerSpellCorrection)
         self._timerSearchingLabel = _makeSingleShotTimer(self._onTimerSearchingLabel)
+        self._auto_pron_timer = _makeSingleShotTimer(self._on_timer_auto_pron_timeout)
 
         # Clipboard
         clipboard = QApplication.clipboard()
         clipboard.dataChanged.connect(
-            partial(self._onClipboardChanged, mode=QClipboard.Clipboard)
+            partial(self._onClipboardChanged, mode=QClipboard.Mode.Clipboard)
         )
         clipboard.selectionChanged.connect(
-            partial(self._onClipboardChanged, mode=QClipboard.Selection)
+            partial(self._onClipboardChanged, mode=QClipboard.Mode.Selection)
         )
 
         # Stylesheet for the item list pane
@@ -192,8 +168,6 @@ class MainWindow(QMainWindow):
                 lazy[_LAZY_ADVSEARCH_WINDOW].close()
             self._save_to_configfile()
             self._unload_searchers()
-            if _LAZY_SOUNDPLAYER in lazy:
-                lazy[_LAZY_SOUNDPLAYER].close()
             super(MainWindow, self).closeEvent(event)
         else:
             self.hide()
@@ -204,22 +178,22 @@ class MainWindow(QMainWindow):
         sp = self._ui.splitter
         width = event.size().width()
         if width < 350:
-            sp.setOrientation(Qt.Vertical)
+            sp.setOrientation(Qt.Orientation.Vertical)
             ui.actionSearchExamples.setText("E")
             ui.actionSearchDefinitions.setText("D")
             ui.actionAdvancedSearch.setText("A")
         elif width < 550:
-            sp.setOrientation(Qt.Vertical)
+            sp.setOrientation(Qt.Orientation.Vertical)
             ui.actionSearchExamples.setText("Exa")
             ui.actionSearchDefinitions.setText("Def")
             ui.actionAdvancedSearch.setText("Adv")
         elif width < 900:
-            sp.setOrientation(Qt.Horizontal)
+            sp.setOrientation(Qt.Orientation.Horizontal)
             ui.actionSearchExamples.setText("Exa")
             ui.actionSearchDefinitions.setText("Def")
             ui.actionAdvancedSearch.setText("Advanced")
         else:
-            sp.setOrientation(Qt.Horizontal)
+            sp.setOrientation(Qt.Orientation.Horizontal)
             ui.actionSearchExamples.setText("Examples")
             ui.actionSearchDefinitions.setText("Definitions")
             ui.actionAdvancedSearch.setText("Advanced")
@@ -227,30 +201,30 @@ class MainWindow(QMainWindow):
     def keyPressEvent(self, event):
         key = event.key()
         modifiers = event.modifiers()
-        ctrl = Qt.MetaModifier if _IS_OSX else Qt.ControlModifier
+        ctrl = Qt.KeyboardModifier.MetaModifier if _IS_OSX else Qt.KeyboardModifier.ControlModifier
         le = self._ui.lineEditSearch
 
         if (
-            key == Qt.Key_Down
-            or (key == Qt.Key_J and modifiers == ctrl)
-            or (key == Qt.Key_Return and modifiers == Qt.NoModifier)
+            key == Qt.Key.Key_Down
+            or (key == Qt.Key.Key_J and modifiers == ctrl)
+            or (key == Qt.Key.Key_Return and modifiers == Qt.KeyboardModifier.NoModifier)
         ):
             self.selectItemRelative(1)
         elif (
-            key == Qt.Key_Up
-            or (key == Qt.Key_K and modifiers == ctrl)
-            or (key == Qt.Key_Return and modifiers == Qt.ShiftModifier)
+            key == Qt.Key.Key_Up
+            or (key == Qt.Key.Key_K and modifiers == ctrl)
+            or (key == Qt.Key.Key_Return and modifiers == Qt.KeyboardModifier.ShiftModifier)
         ):
             self.selectItemRelative(-1)
-        elif key == Qt.Key_Backspace:
+        elif key == Qt.Key.Key_Backspace:
             le.setFocus()
             le.setText(self._ui.lineEditSearch.text()[:-1])
         elif key in (
-            Qt.Key_Space,
-            Qt.Key_PageDown,
-            Qt.Key_PageUp,
-            Qt.Key_Home,
-            Qt.Key_End,
+            Qt.Key.Key_Space,
+            Qt.Key.Key_PageDown,
+            Qt.Key.Key_PageUp,
+            Qt.Key.Key_Home,
+            Qt.Key.Key_End,
         ):
             self._ui.webView.setFocus()
             self._ui.webView.keyPressEvent(event)
@@ -265,19 +239,19 @@ class MainWindow(QMainWindow):
         modifiers = event.modifiers()
         mouse_buttons = QApplication.mouseButtons()
 
-        ctrl = Qt.MetaModifier if _IS_OSX else Qt.ControlModifier
+        ctrl = Qt.KeyboardModifier.MetaModifier if _IS_OSX else Qt.KeyboardModifier.ControlModifier
 
-        if (not event.isAutoRepeat()) and mouse_buttons == Qt.NoButton:
+        if (not event.isAutoRepeat()) and mouse_buttons == Qt.MouseButton.NoButton:
             if (
-                key == Qt.Key_Down
-                or (key == Qt.Key_J and modifiers == ctrl)
-                or (key == Qt.Key_Return and modifiers == Qt.NoModifier)
+                key == Qt.Key.Key_Down
+                or (key == Qt.Key.Key_J and modifiers == ctrl)
+                or (key == Qt.Key.Key_Return and modifiers == Qt.KeyboardModifier.NoModifier)
             ):
                 self._loadItem()
             elif (
-                key == Qt.Key_Up
-                or (key == Qt.Key_K and modifiers == ctrl)
-                or (key == Qt.Key_Return and modifiers == Qt.ShiftModifier)
+                key == Qt.Key.Key_Up
+                or (key == Qt.Key.Key_K and modifiers == ctrl)
+                or (key == Qt.Key.Key_Return and modifiers == Qt.KeyboardModifier.ShiftModifier)
             ):
                 self._loadItem()
 
@@ -378,7 +352,7 @@ class MainWindow(QMainWindow):
 
         if sel_row >= 0:
             lw.setCurrentRow(sel_row)
-            lw.scrollToItem(lw.item(sel_row), QAbstractItemView.EnsureVisible)
+            lw.scrollToItem(lw.item(sel_row), QAbstractItemView.ScrollHint.EnsureVisible)
         else:
             lw.scrollToTop()
 
@@ -449,7 +423,7 @@ class MainWindow(QMainWindow):
 
     def _onItemSelectionChanged(self):
         selitems = self._ui.listWidgetIndex.selectedItems()
-        if selitems and QApplication.mouseButtons() != Qt.NoButton:
+        if selitems and QApplication.mouseButtons() != Qt.MouseButton.NoButton:
             self._loadItem(self._ui.listWidgetIndex.row(selitems[0]))
 
     # ---------
@@ -516,8 +490,8 @@ class MainWindow(QMainWindow):
         if len(query.split()) == 1:
             words = self._fts_hwdphr.correct(query)
             cmpl = QCompleter(words, self)
-            cmpl.setModelSorting(QCompleter.UnsortedModel)
-            cmpl.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+            cmpl.setModelSorting(QCompleter.ModelSorting.UnsortedModel)
+            cmpl.setCompletionMode(QCompleter.CompletionMode.UnfilteredPopupCompletion)
             self._ui.lineEditSearch.setCompleter(cmpl)
             cmpl.complete()
 
@@ -576,37 +550,6 @@ class MainWindow(QMainWindow):
     # ----------
     # WebView
     # ----------
-
-    def _playbackAudio(self, path):
-        self._getAudioData(path, lambda data: self._soundplayer.play(data))
-
-    def _getAudioData(self, path, callback):
-        (archive, name) = path.lstrip("/").split("/", 1)
-        if archive in ("us_hwd_pron", "gb_hwd_pron", "exa_pron", "sfx", "sound"):
-            path = "/{0}/{1}".format(archive, name)
-            (data, _) = self._scheme_handler.get_ldoce_content(path)
-            callback(data)
-
-    def downloadSelectedAudio(self):
-        pass
-        # FIXME
-        # path = self._ui.webView.audioUrlToDownload.path()
-
-        # def showSaveDialog(data):
-        #     filename = QFileDialog.getSaveFileName(
-        #         self, "Save mp3", "", "MP3 Files (*.mp3)"
-        #     )[0]
-        #     if filename != "":
-        #         file = open(filename, "w")
-        #         file.write(data)
-        #         file.close()
-
-        # self._getAudioData(path, showSaveDialog)
-
-    # def _onWebViewLinkClicked(self, url):
-    #     # FIXME: not a local scheme
-    #     # webbrowser.open(str(url.toEncoded()))
-
     def _onWebViewWheelWithCtrl(self, delta):
         self.setZoom(delta / 120.0, relative=True)
 
@@ -669,7 +612,7 @@ class MainWindow(QMainWindow):
 
         # auto pronunciation playback
         if not history.canGoForward():
-            self._autoPronPlayback()
+            self._auto_pron_playback()
 
         # FIXME: restore search phrase
         # hist_item = history.currentItem()
@@ -759,10 +702,10 @@ class MainWindow(QMainWindow):
             return
 
         clipboard = QApplication.clipboard()
-        if mode == QClipboard.Selection:
-            text = clipboard.text(QClipboard.Selection)
-        elif mode == QClipboard.Clipboard:
-            text = clipboard.text(QClipboard.Clipboard)
+        if mode == QClipboard.Mode.Selection:
+            text = clipboard.text(QClipboard.Mode.Selection)
+        elif mode == QClipboard.Mode.Clipboard:
+            text = clipboard.text(QClipboard.Mode.Clipboard)
         # elif mode == QClipboard.FindBuffer:
         #    text = clipboard.text(QClipboard.FindBuffer)
         else:
@@ -779,38 +722,46 @@ class MainWindow(QMainWindow):
     # -------------
 
     def _onNavForward(self):
-        self._ui.webView.page().triggerAction(QWebEnginePage.Forward)
+        self._ui.webView.page().triggerAction(QWebEnginePage.WebAction.Forward)
 
     def _onNavBack(self):
-        self._ui.webView.page().triggerAction(QWebEnginePage.Back)
+        self._ui.webView.page().triggerAction(QWebEnginePage.WebAction.Back)
 
     def _onNavActionChanged(self):
         webPage = self._ui.webView.page()
         ui = self._ui
         ui.toolButtonNavForward.setEnabled(
-            webPage.action(QWebEnginePage.Forward).isEnabled()
+            webPage.action(QWebEnginePage.WebAction.Forward).isEnabled()
         )
-        ui.toolButtonNavBack.setEnabled(webPage.action(QWebEnginePage.Back).isEnabled())
+        ui.toolButtonNavBack.setEnabled(webPage.action(QWebEnginePage.WebAction.Back).isEnabled())
 
     # -----------
     # Auto Pron
     # -----------
 
-    def _autoPronPlayback(self):
-        self._timerAutoPron.start(_INTERVAL_AUTO_PRON)
+    def _auto_pron_playback(self):
+        if self._auto_pron_timer.isActive():
+            self._auto_pron_timer.stop()
+        self._auto_pron_timer.setInterval(_INTERVAL_AUTO_PRON)
+        self._auto_pron_timer.start()
 
-    def _onTimerAutoPronTimeout(self):
-        autoplayback = get_config().get("autoPronPlayback", None)
-        if autoplayback:
-            pass
-            # FIXME: metaData is not supported on PyQt5
-            # metaData = self._ui.webView.page().mainFrame().metaData()
-            # if autoplayback == "US" and ("us_pron" in metaData):
-            #     self._playbackAudio("/us_hwd_pron/" + metaData["us_pron"][0])
-            # elif autoplayback == "GB" and ("gb_pron" in metaData):
-            #     self._playbackAudio("/gb_hwd_pron/" + metaData["gb_pron"][0])
+    def _playback_audio(self, name):
+        if name == "":
+            return
+        language = get_config().get("autoPronPlayback", None)
+        path = f"/{language.lower()}_hwd_pron/{name}"
+        self._scheme_handler.play_audio(path)
 
-    def _onAutoPronChanged(self, action):
+    def _on_timer_auto_pron_timeout(self):
+        language = get_config().get("autoPronPlayback", None)
+        if language in ("US", "GB"):
+            js = f"""
+            const meta = document.querySelector("meta[name='{language.lower()}_pron']");
+            (meta) ? meta.getAttribute("content") : "";
+            """
+            self._ui.webView.page().runJavaScript(js, 0, self._playback_audio)
+
+    def _on_auto_pron_changed(self, action):
         config = get_config()
         if action == self._ui.actionPronUS:
             config["autoPronPlayback"] = "US"
@@ -840,33 +791,28 @@ class MainWindow(QMainWindow):
         elif curr_visible:
             self.findText("")
 
-    def findText(self, text):
-        self._ui.actionFindNext.setEnabled(bool(text))
-        self._ui.actionFindPrev.setEnabled(bool(text))
-
-        findtext = self._ui.webView.findText
-        findtext("")
-        findtext("", QWebEnginePage.HighlightAllOccurrences)
-        found = findtext(text, QWebEnginePage.HighlightAllOccurrences)
-        self._ui.actionFindNext.setEnabled(found)
-        self._ui.actionFindPrev.setEnabled(found)
-        if found:
-            findtext(text, QWebEnginePage.FindWrapsAroundDocument)
-        if found or not text:
-            style = "QLineEdit{ background-color: auto; color: auto; }"
+    def _find_text_finished(self, result: QWebEngineFindTextResult):
+        self._ui.actionFindNext.setEnabled(result.numberOfMatches() > 1)
+        self._ui.actionFindPrev.setEnabled(result.numberOfMatches() > 1)
+        if result.numberOfMatches() == 1:
+            self._ui.labelFindResults.setText(f"{result.numberOfMatches()} match")
+        elif result.numberOfMatches() == 0:
+            self._ui.labelFindResults.setText("")
         else:
-            style = "QLineEdit { background-color: #f77; color: white; }"
-        self._ui.lineEditFind.setStyleSheet(style)
+            self._ui.labelFindResults.setText(f"{result.activeMatch()} of {result.numberOfMatches()} matches")
+
+    def findText(self, text):
+        self._ui.webView.page().findText(text)
 
     def findNext(self):
         self._ui.webView.findText(
-            self._ui.lineEditFind.text(), QWebEnginePage.FindWrapsAroundDocument
+            self._ui.lineEditFind.text()
         )
 
     def findPrev(self):
         self._ui.webView.findText(
             self._ui.lineEditFind.text(),
-            QWebEnginePage.FindBackward | QWebEnginePage.FindWrapsAroundDocument,
+            QWebEnginePage.FindFlag.FindBackward
         )
 
     # -------
@@ -945,10 +891,10 @@ class MainWindow(QMainWindow):
             self,
             "Welcome to the LDOCE5 Viewer",
             msg,
-            QMessageBox.Yes | QMessageBox.Cancel,
-            QMessageBox.Yes,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Yes,
         )
-        if r == QMessageBox.Yes:
+        if r == QMessageBox.StandardButton.Yes:
             self._show_indexer_dialog(autostart=True)
         else:
             self.close()
@@ -964,7 +910,7 @@ class MainWindow(QMainWindow):
         # Show the indexer dialog
         self._unload_searchers()
         dialog = IndexerDialog(self, autostart)
-        if dialog.exec_():
+        if dialog.exec():
             config.save()
             text = "welcome"
             self._ui.lineEditSearch.setText(text)
@@ -998,7 +944,7 @@ class MainWindow(QMainWindow):
         ui.lineEditSearch = LineEdit(self)
         ui.lineEditSearch.setPlaceholderText("Search...")
         ui.lineEditSearch.setInputMethodHints(
-            Qt.ImhUppercaseOnly | Qt.ImhLowercaseOnly | Qt.ImhDigitsOnly
+            Qt.InputMethodHint.ImhUppercaseOnly | Qt.InputMethodHint.ImhLowercaseOnly | Qt.InputMethodHint.ImhDigitsOnly
         )
         toolBar.addWidget(ui.toolButtonNavBack)
         toolBar.addWidget(ui.toolButtonNavForward)
@@ -1042,20 +988,20 @@ class MainWindow(QMainWindow):
             _set_icon(ui.actionAbout, "help-about")
             _set_icon(ui.actionPrint, "document-print")
             _set_icon(ui.actionPrintPreview, "document-print-preview")
-            _set_icon(webpage.action(QWebEnginePage.Forward), "go-next", "24")
-            _set_icon(webpage.action(QWebEnginePage.Back), "go-previous", "24")
-            _set_icon(webpage.action(QWebEnginePage.Reload), "reload")
-            _set_icon(webpage.action(QWebEnginePage.CopyImageToClipboard), "edit-copy")
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Forward), "go-next", "24")
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Back), "go-previous", "24")
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Reload), "reload")
+            _set_icon(webpage.action(QWebEnginePage.WebAction.CopyImageToClipboard), "edit-copy")
             _set_icon(
-                webpage.action(QWebEnginePage.InspectElement), "document-properties"
+                webpage.action(QWebEnginePage.WebAction.InspectElement), "document-properties"
             )
         else:
             ui.toolBar.setIconSize(QSize(16, 16))
             ui.actionNavForward.setIcon(QIcon(":/icons/go-next-mac.png"))
             ui.actionNavBack.setIcon(QIcon(":/icons/go-previous-mac.png"))
-            _set_icon(webpage.action(QWebEnginePage.Forward))
-            _set_icon(webpage.action(QWebEnginePage.Back))
-            _set_icon(webpage.action(QWebEnginePage.Reload))
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Forward))
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Back))
+            _set_icon(webpage.action(QWebEnginePage.WebAction.Reload))
 
         ui.frameFindbar.setStyleSheet(
             """#frameFindbar {
@@ -1097,19 +1043,19 @@ class MainWindow(QMainWindow):
         # Nav Buttons
         ui.actionNavForward.triggered.connect(self._onNavForward)
         ui.actionNavBack.triggered.connect(self._onNavBack)
-        webpage.action(QWebEnginePage.Forward).changed.connect(self._onNavActionChanged)
-        webpage.action(QWebEnginePage.Back).changed.connect(self._onNavActionChanged)
+        webpage.action(QWebEnginePage.WebAction.Forward).changed.connect(self._onNavActionChanged)
+        webpage.action(QWebEnginePage.WebAction.Back).changed.connect(self._onNavActionChanged)
 
         # ListView
-        ui.listWidgetIndex.setAttribute(Qt.WA_MacShowFocusRect, False)
+        ui.listWidgetIndex.setAttribute(Qt.WidgetAttribute.WA_MacShowFocusRect, False)
 
         # WebView
         for web_act in (
-            QWebEnginePage.OpenLinkInNewWindow,
-            QWebEnginePage.DownloadLinkToDisk,
-            QWebEnginePage.DownloadImageToDisk,
-            QWebEnginePage.CopyLinkToClipboard,
-            QWebEnginePage.CopyImageToClipboard,
+            QWebEnginePage.WebAction.OpenLinkInNewWindow,
+            QWebEnginePage.WebAction.DownloadLinkToDisk,
+            QWebEnginePage.WebAction.DownloadImageToDisk,
+            QWebEnginePage.WebAction.CopyLinkToClipboard,
+            QWebEnginePage.WebAction.CopyImageToClipboard,
             # QWebEnginePage.OpenFrameInNewWindow,
             # QWebEnginePage.OpenImageInNewWindow,
         ):
@@ -1155,6 +1101,7 @@ class MainWindow(QMainWindow):
         ui.webView.wheelWithCtrl.connect(self._onWebViewWheelWithCtrl)
         ui.webView.urlChanged.connect(self._onUrlChanged)
         ui.webView.loadFinished.connect(self._onLoadFinished)
+        ui.webView.page().findTextFinished.connect(self._find_text_finished)
 
         # Actions
         def act_conn(action, slot):
@@ -1172,7 +1119,6 @@ class MainWindow(QMainWindow):
         act_conn(ui.actionSearchDefinitions, self._onSearchDefinitions)
         act_conn(ui.actionAdvancedSearch, self._onAdvancedSearch)
         act_conn(ui.webView.actionSearchText, self.searchSelectedText)
-        act_conn(ui.webView.actionDownloadAudio, self.downloadSelectedAudio)
         act_conn(ui.actionZoomIn, partial(self.setZoom, 1, relative=True))
         act_conn(ui.actionZoomOut, partial(self.setZoom, -1, relative=True))
         act_conn(ui.actionNormalSize, partial(self.setZoom, 0))
@@ -1183,7 +1129,7 @@ class MainWindow(QMainWindow):
             ui.actionCloseInspector, partial(self.setInspectorVisible, visible=False)
         )
         act_conn(
-            webpage.action(QWebEnginePage.InspectElement),
+            webpage.action(QWebEnginePage.WebAction.InspectElement),
             partial(self.setInspectorVisible, visible=True),
         )
 
@@ -1192,10 +1138,10 @@ class MainWindow(QMainWindow):
         ui.actionGroupAutoPron.addAction(ui.actionPronGB)
         ui.actionGroupAutoPron.addAction(ui.actionPronUS)
         ui.actionGroupAutoPron.setExclusive(True)
-        ui.actionGroupAutoPron.triggered.connect(self._onAutoPronChanged)
+        ui.actionGroupAutoPron.triggered.connect(self._on_auto_pron_changed)
 
         self.addAction(ui.actionFocusLineEdit)
-        self.addAction(webpage.action(QWebEnginePage.SelectAll))
+        self.addAction(webpage.action(QWebEnginePage.WebAction.SelectAll))
 
         # Set an action to each ToolButton
         ui.toolButtonFindNext.setDefaultAction(ui.actionFindNext)
@@ -1209,35 +1155,35 @@ class MainWindow(QMainWindow):
         self.addAction(actionPaste)
 
         # Shorcut keys
-        ui.actionQuit.setShortcuts(QKeySequence.Quit)
-        ui.actionHelp.setShortcuts(QKeySequence.HelpContents)
-        ui.actionFind.setShortcuts(QKeySequence.Find)
-        ui.actionFindNext.setShortcuts(QKeySequence.FindNext)
-        ui.actionFindPrev.setShortcuts(QKeySequence.FindPrevious)
-        ui.actionZoomIn.setShortcuts(QKeySequence.ZoomIn)
-        ui.actionZoomOut.setShortcuts(QKeySequence.ZoomOut)
-        ui.actionPrint.setShortcuts(QKeySequence.Print)
+        ui.actionQuit.setShortcuts(QKeySequence.StandardKey.Quit)
+        ui.actionHelp.setShortcuts(QKeySequence.StandardKey.HelpContents)
+        ui.actionFind.setShortcuts(QKeySequence.StandardKey.Find)
+        ui.actionFindNext.setShortcuts(QKeySequence.StandardKey.FindNext)
+        ui.actionFindPrev.setShortcuts(QKeySequence.StandardKey.FindPrevious)
+        ui.actionZoomIn.setShortcuts(QKeySequence.StandardKey.ZoomIn)
+        ui.actionZoomOut.setShortcuts(QKeySequence.StandardKey.ZoomOut)
+        ui.actionPrint.setShortcuts(QKeySequence.StandardKey.Print)
         ui.actionNormalSize.setShortcut(QKeySequence("Ctrl+0"))
         ui.actionFocusLineEdit.setShortcut(QKeySequence("Ctrl+L"))
-        webpage.action(QWebEnginePage.SelectAll).setShortcut(QKeySequence("Ctrl+A"))
-        webpage.action(QWebEnginePage.Back).setShortcuts(
+        webpage.action(QWebEnginePage.WebAction.SelectAll).setShortcut(QKeySequence("Ctrl+A"))
+        webpage.action(QWebEnginePage.WebAction.Back).setShortcuts(
             [
                 k
-                for k in QKeySequence.keyBindings(QKeySequence.Back)
+                for k in QKeySequence.keyBindings(QKeySequence.StandardKey.Back)
                 if not k.matches(QKeySequence("Backspace"))
             ]
         )
-        webpage.action(QWebEnginePage.Forward).setShortcuts(
+        webpage.action(QWebEnginePage.WebAction.Forward).setShortcuts(
             [
                 k
-                for k in QKeySequence.keyBindings(QKeySequence.Forward)
+                for k in QKeySequence.keyBindings(QKeySequence.StandardKey.Forward)
                 if not k.matches(QKeySequence("Shift+Backspace"))
             ]
         )
         ui.actionNavBack.setShortcuts(
             [
                 k
-                for k in QKeySequence.keyBindings(QKeySequence.Back)
+                for k in QKeySequence.keyBindings(QKeySequence.StandardKey.Back)
                 if not k.matches(QKeySequence("Backspace"))
             ]
             + [QKeySequence("Ctrl+[")]
@@ -1245,7 +1191,7 @@ class MainWindow(QMainWindow):
         ui.actionNavForward.setShortcuts(
             [
                 k
-                for k in QKeySequence.keyBindings(QKeySequence.Forward)
+                for k in QKeySequence.keyBindings(QKeySequence.StandardKey.Forward)
                 if not k.matches(QKeySequence("Shift+Backspace"))
             ]
             + [QKeySequence("Ctrl+]")]
@@ -1382,16 +1328,6 @@ class MainWindow(QMainWindow):
                 )
             except (EnvironmentError, incremental.IndexError):
                 pass
-
-        return obj
-
-    @property
-    def _soundplayer(self):
-        obj = self._lazy.get(_LAZY_SOUNDPLAYER, None)
-        if obj is None:
-            obj = self._lazy[_LAZY_SOUNDPLAYER] = create_soundplayer(
-                self, get_config()._data_dir
-            )
 
         return obj
 

@@ -8,10 +8,10 @@ import os.path
 import sys
 from optparse import OptionParser
 
-from PyQt5.QtGui import QIcon
+from PySide6.QtGui import QIcon
 
 # set a dummy function if QLineEdit doesn't have setPlaceholderText
-from PyQt5.QtWidgets import QLineEdit
+from PySide6.QtWidgets import QLineEdit
 
 from .. import __author__
 from .config import get_config
@@ -97,7 +97,7 @@ def run(argv):
     # On Windows-ja
     if app.font().family() == "MS UI Gothic":
         cand = (("Segoe UI", None), ("Meiryo UI", None), ("Tahoma", 8))
-        from PyQt5.QtGui import QFont
+        from PySide6.QtGui import QFont
 
         for name, point in cand:
             ps = app.font().pointSize()
@@ -113,7 +113,7 @@ def run(argv):
         sys.stderr.setApplication(app)
 
     # Start the application
-    r = app.exec_()
+    r = app.exec()
 
     # Quit
     config.save()

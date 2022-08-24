@@ -2,8 +2,8 @@
 
 from logging import StreamHandler
 
-from PyQt5.QtCore import QMutex, QObject, pyqtSignal
-from PyQt5.QtWidgets import QPlainTextEdit
+from PySide6.QtCore import QRecursiveMutex, QObject, Signal
+from PySide6.QtWidgets import QPlainTextEdit
 
 
 class MyStreamHandler(StreamHandler):
@@ -12,7 +12,7 @@ class MyStreamHandler(StreamHandler):
 
     def createLock(self):
         # must be Recursive (= reentrant)
-        self._mutex = QMutex(QMutex.Recursive)
+        self._mutex = QRecursiveMutex()
 
     def acquire(self):
         self._mutex.lock()
@@ -22,14 +22,14 @@ class MyStreamHandler(StreamHandler):
 
 
 class StdErrWrapper(QObject):
-    _write = pyqtSignal(type(u""))
-    _flush = pyqtSignal()
+    _write = Signal(type(u""))
+    _flush = Signal()
 
     def __init__(self, old_stderr):
         QObject.__init__(self)
         self._old_stderr = old_stderr
         self._widget = None
-        self._mutex = QMutex(QMutex.Recursive)
+        self._mutex = QRecursiveMutex()
 
     def setApplication(self, app):
         assert self._widget is None
